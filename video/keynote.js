@@ -497,8 +497,10 @@ let RQX = null; // each row's visible chips as [el, x0, x1] in the row, measured
 const offX = (el, stop) => { let x = 0; for (; el && el !== stop; el = el.offsetParent) x += el.offsetLeft; return x; };
 hook((t) => {
   if (t < 113.8 || t > RQ_OUT + 0.6) return;
+  // In stage pixels, whether or not the browser reports the zoomed stage's offsets zoomed.
+  const px = 1920 / document.querySelector("#stage > .center").offsetWidth;
   RQX = RQX || RQ.map((_, r) => RQ_TOK.map((_, k) => $(`rq${r}c${k}`)).filter((el) => !el.classList.contains("ghost"))
-    .map((el) => { const x0 = offX(el, $("rqr" + r)); return [el, x0, x0 + el.offsetWidth]; }));
+    .map((el) => { const x0 = offX(el, $("rqr" + r)) * px; return [el, x0, x0 + el.offsetWidth * px]; }));
   RQ.forEach(([, rgb], r) => {
     const chips = RQX[r], on = t >= RQ_SW && t < RQ_OUT;
     const hx = chips[0][1] + ((t - RQ_SW) % RQ_PER) * RQ_V; // the read head
@@ -1048,18 +1050,24 @@ if (!new URLSearchParams(location.search).has("render")) player();
 function player() {
   const POSTER = KEYNOTE_TIMELINE.playbackTime(KEYNOTE_TIMELINE.posterTime);
   const stage = $("stage");
-  // Fixed, the 1920-pixel stage isn't part of the page's width, which a phone would zoom out to show.
-  stage.style.position = "fixed";
-  // The stage fits the window: a phone held sideways fills its screen with it.
+  // The stage fits the window: a phone held sideways fills its screen with it. Zoomed, it is laid out
+  // at the size it shows. Scaled down from 1920 pixels instead, Safari draws each of its layers at
+  // full size times the screen's density, which on an iPhone (3x) runs out of memory and reloads the
+  // page. Fixed, it isn't part of the page's width, which a phone would zoom out to show. Browsers
+  // without zoom scale it.
+  const zoomed = CSS.supports("zoom", "0.5");
+  Object.assign(stage.style, zoomed ? { position: "fixed", inset: "0", margin: "auto" } : { position: "fixed", left: "0", top: "0" });
   const fit = () => {
     const k = Math.min(innerWidth / 1920, innerHeight / 1080);
-    stage.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px, ${(innerHeight - 1080 * k) / 2}px) scale(${k})`;
+    if (zoomed) stage.style.zoom = k;
+    else stage.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px, ${(innerHeight - 1080 * k) / 2}px) scale(${k})`;
   };
   addEventListener("resize", fit); window.visualViewport?.addEventListener("resize", fit); fit();
   const touch = matchMedia("(pointer: coarse)").matches;
 
   const css = document.createElement("style");
   css.textContent = `
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; } /* iOS enlarges text when the phone turns */
     body { height: 100vh; height: 100dvh; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
     #pl-big { position: fixed; left: 50%; top: 50%; width: 112px; height: 112px; margin: -56px 0 0 -56px; border-radius: 50%; border: 0; z-index: 10;
       background: rgba(255,255,255,.14); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); cursor: pointer;
