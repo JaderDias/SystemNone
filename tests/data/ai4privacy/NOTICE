@@ -1,0 +1,10 @@
+Built with Llama.
+
+This directory contains a 261-row excerpt of the Open PII Masking 500k dataset by Ai4Privacy
+(https://huggingface.co/datasets/ai4privacy/open-pii-masking-500k-ai4privacy), which was generated
+with Llama 3.1 and Llama 3.3 models.
+
+Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright (c) Meta Platforms, Inc. All Rights Reserved.
+Llama 3.3 is licensed under the Llama 3.3 Community License, Copyright (c) Meta Platforms, Inc. All Rights Reserved.
+
+Copies of both licenses are in licenses/. The excerpt is used here only as test data.

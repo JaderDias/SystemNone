@@ -1,0 +1,602 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SystemNone</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+/* ---- Design system: shared with admin.html ------------------------------------------------- */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f3f4f6; --border: #e5e7eb; --border-strong: #d1d5db;
+  --text: #111827; --text-2: #4b5563; --text-3: #6b7280;
+  --accent: #4f46e5; --accent-soft: #eef2ff; --on-accent: #ffffff;
+  --ok: #047857; --ok-soft: #ecfdf5; --warn: #b45309; --warn-soft: #fffbeb;
+  --bad: #b91c1c; --bad-soft: #fef2f2; --info: #1d4ed8; --info-soft: #eff6ff;
+  --student: #10b981; --s1: #cbd5e1; --cache: #60a5fa;
+  --radius: 10px; --shadow: 0 1px 2px rgba(16, 24, 40, .05);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0f17; --surface: #121826; --surface-2: #1a2131; --border: #263042; --border-strong: #354156;
+    --text: #e5e7eb; --text-2: #b4bccb; --text-3: #8b95a7;
+    --accent: #818cf8; --accent-soft: rgba(129, 140, 248, .14); --on-accent: #0b0f17;
+    --ok: #34d399; --ok-soft: rgba(52, 211, 153, .12); --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .12);
+    --bad: #f87171; --bad-soft: rgba(248, 113, 113, .12); --info: #60a5fa; --info-soft: rgba(96, 165, 250, .12);
+    --student: #34d399; --s1: #475569; --cache: #93c5fd; --shadow: none;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.55 Inter, "Segoe UI", system-ui, -apple-system, sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 12.5px; }
+code { background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; }
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+.topbar-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 650; font-size: 15px; letter-spacing: -.01em; color: var(--text); white-space: nowrap; }
+.brand img { display: block; }
+.nav { display: flex; gap: 4px; height: 100%; }
+.nav a { display: flex; align-items: center; padding: 0 12px; color: var(--text-2); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.nav a:hover { color: var(--text); text-decoration: none; }
+.nav a.on { color: var(--text); border-bottom-color: var(--accent); }
+.topbar .meta { margin-left: auto; color: var(--text-3); font-size: 12.5px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+.page { max-width: 1200px; margin: 0 auto; padding: 28px 24px 72px; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.page-head h1 { font-size: 22px; line-height: 1.25; margin: 0; letter-spacing: -.02em; font-weight: 650; }
+.page-head p { margin: 4px 0 0; color: var(--text-2); }
+h2 { font-size: 15px; margin: 0; font-weight: 650; letter-spacing: -.005em; }
+h3 { font-size: 13px; margin: 0 0 10px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .04em; }
+.muted { color: var(--text-3); }
+.small { font-size: 12.5px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.panel-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.panel-body { padding: 18px; }
+.kpis { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.kpi { padding: 16px 18px; }
+.kpi .label { color: var(--text-3); font-size: 12.5px; font-weight: 500; }
+.kpi .value { font-size: 24px; font-weight: 650; letter-spacing: -.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.kpi .sub { color: var(--text-3); font-size: 12px; margin-top: 2px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-weight: 500; color: var(--text-3); font-size: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; background: var(--surface-2); }
+td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child > td { border-bottom: 0; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px 2px 8px; font-size: 12px; font-weight: 550; white-space: nowrap; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.badge.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.badge.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.badge.info { background: var(--info-soft); color: var(--info); border-color: transparent; }
+.bar { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--border); }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.bar.indeterminate > i { width: 35%; animation: slide 1.6s ease-in-out infinite alternate; }
+@keyframes slide { from { transform: translateX(-10%); } to { transform: translateX(200%); } }
+@media (prefers-reduced-motion: reduce) { .bar.indeterminate > i { animation: none; } }
+.empty { padding: 48px 24px; text-align: center; color: var(--text-3); }
+.gate { max-width: 400px; margin: 72px auto; }
+input, select, textarea { font: inherit; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); width: 100%; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible, .row-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { font: inherit; font-weight: 550; font-size: 13px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); cursor: pointer; }
+button:hover { background: var(--surface-2); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+button.primary:hover { filter: brightness(1.06); }
+details > summary { cursor: pointer; color: var(--text-2); font-weight: 550; list-style: none; display: flex; align-items: center; gap: 8px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "›"; display: inline-block; width: 10px; transition: transform .15s; color: var(--text-3); font-size: 16px; line-height: 1; }
+details[open] > summary::before { transform: rotate(90deg); }
+
+@media (max-width: 640px) {
+  .topbar-inner { padding: 0 16px; gap: 12px; }
+  .topbar .meta { display: none; }
+  .nav a { padding: 0 8px; }
+  .page { padding: 20px 16px 56px; }
+  .hide-sm { display: none; }
+  td, th { padding: 12px 10px; }
+}
+@media (max-width: 420px) {
+  .brand { font-size: 0; gap: 0; }
+}
+
+/* ---- Overview ------------------------------------------------------------------------------- */
+.prompt-row { cursor: pointer; }
+.prompt-row:hover > td { background: var(--surface-2); }
+.prompt-row.open > td { background: var(--surface-2); border-bottom-color: transparent; }
+.row-toggle { background: none; border: 0; padding: 0; color: var(--text); font-weight: 600; text-align: left; cursor: pointer; display: inline-flex; gap: 8px; align-items: baseline; font-size: 14px; }
+.row-toggle:hover { background: none; }
+.chev { color: var(--text-3); display: inline-block; width: 10px; transition: transform .15s; }
+.open .chev { transform: rotate(90deg); }
+.sub-line { color: var(--text-3); font-size: 12.5px; margin-top: 3px; padding-left: 18px; }
+.status-cell .note { color: var(--text-3); font-size: 12px; margin-top: 4px; }
+.share { display: flex; align-items: center; gap: 8px; justify-content: flex-end; }
+.share .bar { width: 64px; background: var(--s1); border: 0; }
+.share .bar > i { background: var(--student); }
+.legend { display: flex; gap: 14px; color: var(--text-3); font-size: 12px; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+tr.detail > td { padding: 0; background: var(--bg); }
+.detail-body { padding: 20px; display: grid; gap: 16px; border-bottom: 1px solid var(--border); }
+.callout { border-radius: var(--radius); border: 1px solid var(--border); background: var(--surface); padding: 16px 18px; border-left: 4px solid var(--border-strong); }
+.callout.ok { border-left-color: var(--ok); } .callout.warn { border-left-color: var(--warn); }
+.callout.bad { border-left-color: var(--bad); } .callout.info { border-left-color: var(--info); }
+.callout .title { font-size: 16px; font-weight: 650; letter-spacing: -.01em; }
+.callout p { margin: 6px 0 0; color: var(--text-2); }
+.callout .next { margin-top: 10px; padding-top: 10px; border-top: 1px dashed var(--border); color: var(--text-2); font-size: 13px; }
+.callout .next b { color: var(--text); }
+.callout .bar { margin-top: 12px; max-width: 520px; }
+.callout .progress-label { font-size: 12.5px; color: var(--text-3); margin-top: 6px; font-variant-numeric: tabular-nums; }
+.stepper { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); list-style: none; margin: 0; padding: 0; }
+.step { position: relative; padding: 0 12px 0 0; }
+.step .dot { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 650; background: var(--surface); border: 2px solid var(--border-strong); color: var(--text-3); position: relative; z-index: 1; }
+.step::after { content: ""; position: absolute; top: 12px; left: 30px; right: 4px; height: 2px; background: var(--border); }
+.step:last-child::after { display: none; }
+.step .name { font-weight: 600; margin-top: 8px; }
+.step .hint { color: var(--text-3); font-size: 12.5px; }
+.step.done .dot { background: var(--ok); border-color: var(--ok); color: var(--surface); }
+.step.done::after { background: var(--ok); }
+.step.active .dot { border-color: var(--accent); color: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); }
+.step.active .name { color: var(--accent); }
+.step.failed .dot { background: var(--bad); border-color: var(--bad); color: var(--surface); }
+.step.failed .name { color: var(--bad); }
+.grid-2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.facts { display: grid; grid-template-columns: max-content 1fr; gap: 8px 18px; margin: 0; }
+.facts dt { color: var(--text-3); }
+.facts dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.audit-top { display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap; }
+.big { font-size: 34px; font-weight: 650; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.big-label { color: var(--text-3); font-size: 12.5px; margin-top: 6px; }
+.meter { position: relative; height: 10px; border-radius: 5px; background: var(--surface-2); border: 1px solid var(--border); margin: 18px 0 6px; }
+.meter > i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 5px; background: var(--accent); }
+.meter > i.ok { background: var(--ok); } .meter > i.bad { background: var(--bad); } .meter > i.warn { background: var(--warn); }
+.meter .mark { position: absolute; top: -6px; bottom: -6px; width: 2px; background: var(--text); }
+.meter .mark span { position: absolute; top: -20px; transform: translateX(-50%); font-size: 11.5px; color: var(--text-2); white-space: nowrap; }
+.meter-scale { display: flex; justify-content: space-between; font-size: 11.5px; color: var(--text-3); }
+.sources { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+.source { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; min-width: 150px; }
+.source b { display: block; font-size: 16px; font-variant-numeric: tabular-nums; }
+.source span { color: var(--text-3); font-size: 12px; }
+.inline-note { margin-top: 12px; padding: 10px 12px; border-radius: 8px; background: var(--surface-2); color: var(--text-2); font-size: 13px; }
+.inline-note.bad { background: var(--bad-soft); color: var(--bad); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; padding: 1px 8px; font-size: 12px; color: var(--text-2); }
+pre.instructions { white-space: pre-wrap; margin: 10px 0 0; font: inherit; color: var(--text-2); }
+.inner-table th { background: transparent; padding: 8px 10px; }
+.inner-table td { padding: 10px; }
+@media (max-width: 960px) {
+  .grid-2 { grid-template-columns: minmax(0, 1fr); }
+  .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpis > :last-child { grid-column: 1 / -1; }
+}
+@media (max-width: 640px) {
+  .stepper { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+  .step:nth-child(2)::after { display: none; }
+  .detail-body { padding: 14px; }
+  .facts { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .facts dd { margin-bottom: 8px; }
+}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="/"><img src="/favicon.svg" width="24" height="24" alt="" aria-hidden="true">SystemNone</a>
+  <nav class="nav" aria-label="Main"><a href="/">Overview</a><a href="/jobs">Training</a><a href="/admin">Settings</a></nav>
+  <span class="meta"><span class="pulse" aria-hidden="true"></span><span id="updated">Loading…</span></span>
+</div></header>
+<main class="page" id="main"><div class="empty">Loading…</div></main>
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt = (n) => Number(n || 0).toLocaleString();
+const pct = (x, digits = 0) => x == null || !Number.isFinite(Number(x)) ? "—" : `${(Number(x) * 100).toFixed(digits)}%`;
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+// US dollars, written as in the US: cents from $1 up, two significant digits below, as one call
+// can cost $0.000013.
+function usd(x) {
+  if (x == null || !Number.isFinite(Number(x))) return "—";
+  x = Number(x);
+  if (x === 0) return "$0";
+  if (x >= 1) return x.toLocaleString("en-US", {style: "currency", currency: "USD"});
+  return `$${x.toFixed(Math.min(12, Math.max(2, 1 - Math.floor(Math.log10(x))))).replace(/(\.\d\d\d*?)0+$/, "$1")}`;
+}
+const VIEW = location.pathname.replace(/\/+$/, "") === "/jobs" ? "jobs" : "overview";
+let token = null;
+try { token = sessionStorage.getItem("sn-viewer-token"); } catch (e) {}
+const open = new Set();
+const openDetails = new Set();
+let firstRender = true;
+
+async function api(path) {
+  const r = await fetch(path, {headers: token ? {Authorization: `Bearer ${token}`} : {}});
+  if (r.status === 401) { showGate(); throw new Error("unauthorized"); }
+  if (!r.ok) throw new Error(`${path}: ${r.status}`);
+  return r.json();
+}
+
+function showGate() {
+  $("main").innerHTML = `<section class="panel gate"><div class="panel-body"><h2>Viewer token</h2>
+    <p class="muted">This gateway asks for a token to view usage.</p>
+    <input id="tok" type="password" placeholder="Token" autocomplete="off" aria-label="Viewer token">
+    <div style="margin-top:12px"><button class="primary" id="go">View usage</button></div></div></section>`;
+  const go = () => { token = $("tok").value.trim(); try { sessionStorage.setItem("sn-viewer-token", token); } catch (e) {} location.reload(); };
+  $("go").onclick = go; $("tok").onkeydown = (e) => { if (e.key === "Enter") go(); };
+}
+
+// ---- formatting helpers -------------------------------------------------------------------------
+function ago(seconds) {
+  if (seconds == null) return "never";
+  const s = Math.max(0, Math.floor(Date.now() / 1000 - seconds));
+  return s < 60 ? `${s} s ago` : s < 3600 ? `${Math.floor(s / 60)} min ago` : s < 86400 ? `${Math.floor(s / 3600)} h ago` : `${Math.floor(s / 86400)} d ago`;
+}
+function when(iso) {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (isNaN(d)) return esc(iso);
+  const today = d.toDateString() === new Date().toDateString();
+  const text = today ? d.toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"}) : d.toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"});
+  return `<span title="${esc(iso)}">${esc(text)}</span>`;
+}
+function duration(j) {
+  if (!j.started_at) return "—";
+  const ms = (j.finished_at ? new Date(j.finished_at) : new Date()) - new Date(j.started_at);
+  if (!(ms >= 0)) return "—";
+  const s = Math.round(ms / 1000), m = Math.floor(s / 60), h = Math.floor(m / 60);
+  return (h ? `${h} h ${m % 60} min` : m ? `${m} min ${s % 60} s` : `${s} s`) + (j.finished_at ? "" : " so far");
+}
+const shortModel = (id) => String(id || "").split("/").pop();
+function bar(done, total, label) {
+  if (done == null || !(Number(total) > 0)) return `<div class="bar indeterminate" role="progressbar" aria-label="${esc(label)}"><i></i></div>`;
+  const f = Math.min(1, Math.max(0, Number(done) / Number(total)));
+  return `<div class="bar" role="progressbar" aria-label="${esc(label)}" aria-valuemin="0" aria-valuemax="${Number(total)}" aria-valuenow="${Math.min(Number(done), Number(total))}"><i style="width:${(f * 100).toFixed(1)}%"></i></div>`;
+}
+function spark(daily) {
+  const w = 140, h = 28, n = daily.length || 1, bw = w / n;
+  const max = Math.max(1, ...daily.map((d) => d.student + (d.cache || 0) + d.system_one));
+  const bars = daily.map((d, i) => {
+    const hs = (d.student / max) * h, hc = ((d.cache || 0) / max) * h, h1 = (d.system_one / max) * h;
+    const rect = (y, height, fill, title) => `<rect x="${(i * bw + 1).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${height.toFixed(1)}" rx="1" fill="${fill}"><title>${esc(d.day)}: ${title}</title></rect>`;
+    return rect(h - hs - hc - h1, h1, "var(--s1)", `${fmt(d.system_one)} by System One`)
+      + (d.cache ? rect(h - hs - hc, hc, "var(--cache)", `${fmt(d.cache)} from the cache`) : "")
+      + rect(h - hs, hs, "var(--student)", `${fmt(d.student)} by the student`);
+  }).join("");
+  return `<svg width="${w}" height="${h}" role="img" aria-label="Requests per day, last ${daily.length} days">${bars}</svg>`;
+}
+// Milliseconds, to a hundredth below 1 ms: the cache answers in microseconds.
+const msText = (x) => Number(x).toFixed(x < 1 ? 2 : x < 10 ? 1 : 0);
+// A student's name, and its language when the router sent the request to that language's own.
+function studentName(id) {
+  const [model, language] = id.split("@");
+  return `Student · ${esc(shortModel(model))}${language ? ` <span class="muted small">(${esc(language)})</span>` : ""}`;
+}
+function legend(cache) {
+  const item = (color, label) => `<span><i style="background:var(${color})"></i>${label}</span>`;
+  return `<span class="legend">${item("--student", "Student")}${cache ? item("--cache", "Cache") : ""}${item("--s1", "System One")}</span>`;
+}
+
+// ---- where a prompt stands ----------------------------------------------------------------------
+const STEPS = [["Collect", "Log incoming requests"], ["Train", "Label and fine-tune"], ["Test", "Shadow audit"], ["Serve", "Student answers"]];
+const STAGE_TEXT = {queued: "Waiting for a training worker", starting: "Starting", judging: "Labeling examples with the judge",
+  training: "Fine-tuning the student", calibrating: "Calibrating its confidence", exporting: "Exporting to ONNX",
+  validating: "Checking the exported model and its confidence threshold"};
+const STAGE_ORDER = ["judging", "training", "calibrating", "exporting", "validating"];
+
+function systemOneName(p) { return p.system_one_model_id ? `${p.system_one_model} (${shortModel(p.system_one_model_id)})` : p.system_one_model || "System One"; }
+function referenceText(m, p) {
+  const judge = shortModel(p.judge_model_id || m?.judge || p.deployment?.metrics?.judge) || "the judge";
+  if (m?.known_answer_audits && m?.judge_audits) return `known answers and ${judge}`;
+  if (m?.known_answer_audits) return "known answers";
+  return judge;
+}
+
+// One description of a prompt's state, used by the table and by its detail.
+function lifecycle(p) {
+  const job = p.training_job, dep = p.deployment, m = p.monitor;
+  const s1 = esc(systemOneName(p));
+  const jobOpen = job && (job.status === "queued" || job.status === "running");
+  const shadow = dep?.active && m?.enabled && m.phase === "shadow";
+  const live = dep?.active && !shadow;
+  if (jobOpen) {
+    const phase = job.status === "queued" ? "queued" : job.phase;
+    const stage = STAGE_TEXT[phase] || "Preparing";
+    const i = STAGE_ORDER.indexOf(phase);
+    const title = p.status === "drifted" ? "Retraining after the student's agreement dropped"
+      : live ? "Training a replacement for the live student" : dep ? "Training a new student" : "Training the first student";
+    return {step: 1, state: "active", tone: "info", badge: phase === "queued" ? "Queued" : "Training", title,
+      body: `${esc(stage)}${i >= 0 ? ` · step ${i + 1} of ${STAGE_ORDER.length}` : ""}.`,
+      progress: phase === "queued" ? null : {done: job.done, total: job.total, label: stage},
+      next: live ? `The current student keeps answering until the new one passes its test.`
+        : phase === "queued" ? `Nothing happens until a worker claims the job: <code>make</code> starts one, or run <code>system-none worker</code>.`
+        : `${s1} answers every request meanwhile. Then the student is tested in shadow before it answers anything.`,
+      short: phase === "queued" ? "Waiting for a worker" : stage};
+  }
+  if (shadow) {
+    const need = m.required_samples, n = m.samples;
+    const verdict = {collecting: `Needs ${fmt(need)} confident checks before deciding.`,
+      passing: "Passing: it goes live at the next check.",
+      inconclusive: `Below the bar so far, but within noise; it keeps checking, up to ${fmt(m.max_samples)} checks.`,
+      failing: "Clearly below the bar."}[m.verdict] || "";
+    const idle = m.activity && !m.activity.requests;
+    return {step: 2, state: "active", tone: "warn", badge: "Testing",
+      title: m.judge_change ? "Testing the student again: the judge's version changed" : "Testing the student in shadow",
+      body: `${s1} still answers every request. The student predicts alongside it, and its confident answers are checked against ${esc(referenceText(m, p))}. ${verdict}`,
+      progress: {done: Math.min(n, need), total: need, label: `${fmt(n)} of ${fmt(need)} confident checks${m.agreement != null ? ` · ${pct(m.agreement, 1)} agree (needs ${pct(m.agreement_boundary, 1)})` : ""}`},
+      next: idle ? `<b>No traffic in the last 5 minutes.</b> The test only advances with requests: send some with <code>make traffic</code>.`
+        : `Goes live when at least ${fmt(need)} confident checks agree ${pct(m.agreement_boundary, 1)} of the time or more.`,
+      short: `${fmt(n)} / ${fmt(need)} checks${m.agreement != null ? ` · ${pct(m.agreement, 0)} agree` : ""}`};
+  }
+  if (live) {
+    // The 7-day share counts days before this student served: one that went live today shows today's.
+    const today = p.daily?.[p.daily.length - 1];
+    const newToday = today && new Date(dep.deployed_at).toDateString() === new Date().toDateString();
+    const share = newToday ? pct(today.student / Math.max(1, today.student + (today.cache || 0) + today.system_one)) : pct(p.student_share_7_days);
+    const period = newToday ? "today's requests" : "requests in the last 7 days";
+    const failedRetrain = job?.status === "failed" && job.id !== dep.job_id;
+    return {step: 3, state: "active", tone: "ok", badge: "Live",
+      title: "The student is answering",
+      body: `It answers when its confidence is at least ${dep.threshold > 1 ? "—" : dep.threshold.toFixed(2)}; otherwise ${s1} does. It answered ${share} of ${period}.`,
+      next: m?.enabled ? (m.verdict === "collecting"
+          ? `Audits continue on live traffic: ${fmt(m.samples)} of ${fmt(m.required_samples)} fresh checks so far.`
+          : `Audits continue: ${pct(m.agreement, 1)} of recent confident answers agree with ${esc(referenceText(m, p))} (needs ${pct(m.agreement_boundary, 1)}).`)
+        + (failedRetrain ? " The latest retraining attempt failed; this student keeps serving." : "")
+        : "Audits are off in Settings, so the student is never stopped automatically.",
+      short: `${share} of ${period}`};
+  }
+  if (p.status === "rejected" || m?.phase === "rejected") {
+    const f = m?.failure;
+    return {step: 2, state: "failed", tone: "bad", badge: "Failed test",
+      title: "The student did not pass its test",
+      body: f ? `Its confident answers agreed ${pct(f.agreement, 1)} of the time over ${fmt(f.samples)} checks; ${pct(f.required_agreement, 1)} was needed. ${s1} keeps answering.` : `${s1} keeps answering.`,
+      next: `Retraining on the same data would fail the same way. <b>To improve it:</b> upload labeled examples (<code>make labels DATASET=…</code>), pick a stronger judge or base model, or lower the target agreement, then <b>Train now</b> in Settings.`,
+      short: f ? `${pct(f.agreement, 0)} agreed, needed ${pct(f.required_agreement, 0)}` : "System One answers"};
+  }
+  if (p.status === "drifted") {
+    const f = m?.failure;
+    return {step: 3, state: "failed", tone: "bad", badge: "Stopped",
+      title: "The student was stopped: its agreement dropped",
+      body: f ? `Live agreement fell to ${pct(f.agreement, 1)} over ${fmt(f.samples)} checks; ${pct(f.required_agreement, 1)} is needed. ${s1} answers again.` : `${s1} answers again.`,
+      next: "A retraining job is queued with the latest traffic.", short: "Retraining queued"};
+  }
+  if (p.status === "failed" || job?.status === "failed") {
+    const stage = job?.last_stage ? STAGE_TEXT[job.last_stage]?.toLowerCase() || job.last_stage : null;
+    return {step: 1, state: "failed", tone: "bad", badge: job?.phase === "cancelled" ? "Cancelled" : "Training failed",
+      title: job?.phase === "cancelled" ? "Training was cancelled" : `Training failed${stage ? ` while ${stage}` : ""}`,
+      body: `${s1} keeps answering every request.`,
+      next: `The error message is in <a href="/admin#jobs">Settings → Training jobs</a>, where you can train again. Saved judge labels are reused.`,
+      short: stage ? `Failed while ${stage}` : "See Settings"};
+  }
+  const ready = p.total >= p.threshold;
+  return {step: 0, state: "active", tone: "neutral", badge: "Collecting",
+    title: ready ? "Enough requests to train" : "Collecting requests",
+    body: ready ? `${fmt(p.total)} requests logged. ${dep ? "The previous student was stopped by an admin." : ""}`
+      : `${s1} answers every request while its inputs are logged as training examples.`,
+    progress: ready ? null : {done: p.total, total: p.threshold, label: `${fmt(p.total)} of ${fmt(p.threshold)} requests before the first training`},
+    next: ready ? `Press <b>Train now</b> in <a href="/admin">Settings</a> to start.` : `Training starts automatically at ${fmt(p.threshold)} requests (change it in Settings).`,
+    short: ready ? "Ready to train" : `${fmt(p.total)} / ${fmt(p.threshold)} requests`};
+}
+
+function stepper(l) {
+  return `<ol class="stepper" aria-label="Student pipeline">${STEPS.map(([name, hint], i) => {
+    const cls = i < l.step ? "done" : i === l.step ? l.state : "";
+    const mark = i < l.step ? "✓" : i === l.step && l.state === "failed" ? "!" : i + 1;
+    return `<li class="step ${cls}" ${i === l.step ? 'aria-current="step"' : ""}><div class="dot">${mark}</div><div class="name">${name}</div><div class="hint">${hint}</div></li>`;
+  }).join("")}</ol>`;
+}
+
+function statusCallout(l) {
+  return `<section class="callout ${l.tone}"><div class="title">${l.title}</div><p>${l.body}</p>
+    ${l.progress ? `${bar(l.progress.done, l.progress.total, l.progress.label)}<div class="progress-label">${esc(l.progress.label)}${l.progress.done != null && Number(l.progress.total) > 0 ? ` · ${Math.floor(Math.min(1, l.progress.done / l.progress.total) * 100)}%` : ""}</div>` : ""}
+    ${l.next ? `<div class="next">${l.next}</div>` : ""}</section>`;
+}
+
+function auditPanel(p) {
+  const m = p.monitor, dep = p.deployment;
+  if (!m || !dep) return "";
+  if (!m.enabled) return `<section class="panel"><div class="panel-head"><h2>Audit</h2></div><div class="panel-body muted">Audits are turned off in Settings: the student serves without checks.</div></section>`;
+  const live = m.phase === "live", stopped = m.phase === "rejected" || m.phase === "demoted";
+  const f = m.failure;
+  const agreement = stopped && f ? f.agreement : m.agreement;
+  const samples = stopped && f ? f.samples : m.samples;
+  const boundary = stopped && f ? f.required_agreement : m.agreement_boundary;
+  const tone = agreement == null ? "" : agreement >= boundary ? "ok" : stopped || m.verdict === "failing" ? "bad" : "warn";
+  const a = m.activity || {};
+  // The judge this audit used: older audits may not have recorded one.
+  const judge = m.judge ? shortModel(m.judge) : "";
+  const scope = live ? `the last ${fmt(m.max_samples)} confident answers` : `this test (decides after ${fmt(m.required_samples)}, at most ${fmt(m.max_samples)})`;
+  const body = `
+      <div class="audit-top">
+        <div><div class="big">${pct(agreement, 1)}</div><div class="big-label">agreement on ${fmt(samples)} confident checks</div></div>
+        <div><div class="big" style="color:var(--text-2)">${pct(boundary, 1)}</div><div class="big-label">required</div></div>
+      </div>
+      <div class="meter" role="img" aria-label="Agreement ${pct(agreement, 1)}, required ${pct(boundary, 1)}">
+        <i class="${tone}" style="width:${agreement == null ? 0 : (agreement * 100).toFixed(1)}%"></i>
+        <div class="mark" style="left:${(boundary * 100).toFixed(1)}%"><span>needs ${pct(boundary, 0)}</span></div>
+      </div>
+      <div class="meter-scale"><span>0%</span><span>100%</span></div>
+      <p class="muted small" style="margin:10px 0 0">A check compares the student's answer with a reference answer. Only answers it is confident enough to give count (confidence ≥ ${dep.threshold > 1 ? "—" : dep.threshold.toFixed(2)}); the window is ${scope}.</p>
+      <div class="sources">
+        <div class="source"><b>${fmt(m.known_answer_audits)}</b><span>checked against known answers${dep.metrics?.reference_labels?.audit ? ` (${fmt(dep.metrics.reference_labels.audit)} held out)` : ""}</span></div>
+        <div class="source"><b>${fmt(m.judge_audits)}</b><span>${judge ? `checked against the judge (${esc(judge)})` : "checked against a reference model"}</span></div>
+        <div class="source"><b>${pct(m.traffic_agreement, 1)}</b><span>agreement on all ${fmt(m.traffic_samples)} checks, unsure answers included</span></div>
+        ${m.errors || m.skipped ? `<div class="source"><b>${fmt(m.errors)} · ${fmt(m.skipped)}</b><span>judge errors · skipped (busy)</span></div>` : ""}
+      </div>
+      ${!stopped ? `<div class="inline-note">Last 5 minutes: ${fmt(a.requests)} predictions, ${fmt(a.known_answers)} checked against known answers, ${fmt(a.completed)} judge calls${a.in_flight ? ` (${fmt(a.in_flight)} running)` : ""}${a.avg_judge_latency_ms != null ? `, ${(a.avg_judge_latency_ms / 1000).toFixed(1)} s each` : ""}. Latest check ${ago(a.last_finished_at)}.</div>` : ""}
+      ${f && stopped ? `<div class="inline-note bad">Stopped ${when(f.occurred_at)}: ${fmt(f.disagreements)} of ${fmt(f.samples)} confident answers disagreed with the reference.</div>` : ""}
+      ${m.judge_change ? `<div class="inline-note">The judge started answering as <b>${esc(m.judge_change.to)}</b> (it was ${esc(m.judge_change.from)}) ${when(m.judge_change.at)}. What the student learned from changed, so it was tested again against the new version${m.phase === "shadow" ? "; System One answers until it passes" : m.phase === "live" ? ", and passed" : ""}.</div>` : ""}`;
+  // A stopped student's audit is history: folded away, so it isn't read as the current one.
+  if (!dep.active) {
+    return `<section class="panel"><div class="panel-body">${disclosure(`audit-${p.id}`, `Previous student's audit · ${pct(agreement, 1)} agreement, ${pct(boundary, 1)} needed`, body)}</div></section>`;
+  }
+  return `<section class="panel"><div class="panel-head"><h2>Audit${live ? " · live" : " · shadow test"}</h2><span class="muted small">Updated ${when(m.updated_at)}</span></div>
+    <div class="panel-body">${body}</div></section>`;
+}
+
+function studentPanel(p) {
+  const dep = p.deployment;
+  if (!dep) return "";
+  const x = dep.metrics || {}, c = x.cascade || {}, t = x.test || {}, h = x.human, r = x.reference_labels;
+  const rows = [
+    ["Base model", esc(x.base_model || p.resolved_base_model || "—")],
+    ["Trained on", `${fmt(x.labeled)} examples${r?.train ? `, ${fmt(r.train)} with known answers` : ""}`],
+    ["Judge", `${esc(x.judge || "—")}${x.judge_version && x.judge_version !== x.judge ? ` <span class="muted small">answering as ${esc(x.judge_version)}</span>` : ""}`],
+    ["Answers alone", dep.threshold > 1 ? "never (no threshold met the target)" : `when confidence ≥ ${dep.threshold.toFixed(2)} · ${pct(c.coverage)} of validation requests`],
+    ["Target agreement", `${pct(c.target_accuracy)}${c.accuracy != null ? ` · ${pct(c.accuracy, 1)} measured on validation` : ""}`],
+    ["Agreement on held-out examples", t.accuracy != null ? `${pct(t.accuracy, 1)} of ${fmt(t.n)}, all confidences` : "—"],
+    ...(h ? [["Right on held-out known answers", `${pct(h.accuracy, 1)} of ${fmt(h.n)}${h.accuracy_when_student_answers != null ? ` · ${pct(h.accuracy_when_student_answers, 1)} when it answers alone` : ""}`]] : []),
+    ...(h?.judge_accuracy != null ? [["Judge on the same answers", `${pct(h.judge_accuracy, 1)} of ${fmt(h.judge_n)}`]] : []),
+    ...(x.languages ? [["Students per language", Object.entries(x.languages).map(([code, l]) => `<b>${esc(code)}</b> ${esc(shortModel(l.model))}: ${pct(l.test?.accuracy, 1)} agreement on ${fmt(l.test?.n)} held out, trained on ${fmt(l.examples)} · answers when confidence ≥ ${Number(l.threshold).toFixed(2)}`).join("<br>") + `<div class="muted small">Other languages, and requests the router isn't sure of, go to the student above.</div>`]] : []),
+    ["Model speed", t.p50_ms != null ? `${t.p50_ms} ms median per text on the worker's CPU, one at a time, measured after training` : "—"],
+    ["Published", `${when(dep.deployed_at)} · job <span class="mono">${esc(dep.job_id)}</span>`],
+  ];
+  return `<section class="panel"><div class="panel-head"><h2>${dep.active ? "Student" : "Previous student"}</h2>${dep.active ? "" : '<span class="badge">Not serving</span>'}</div>
+    <div class="panel-body"><dl class="facts">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl></div></section>`;
+}
+
+// A System One model's prices, as Settings sets them (TypeSafe Jev's unless changed).
+function pricingText(pr) {
+  if (!pr) return "—";
+  const parts = [[pr.usd_per_call, "per call"], [pr.usd_per_million_input_tokens, "per million input tokens"],
+    [pr.usd_per_million_output_tokens, "per million output tokens"]].filter(([x]) => x > 0).map(([x, unit]) => `${usd(x)} ${unit}`);
+  const jev = !pr.usd_per_call && pr.usd_per_million_input_tokens === 0.042 && !pr.usd_per_million_output_tokens;
+  return parts.length ? parts.join(" + ") + (jev ? " (TypeSafe Jev's rate)" : "") : "free";
+}
+
+function trafficPanel(p) {
+  const rows = p.model_latencies_7_days || [];
+  const errors = Number(p.errors_7_days) || 0, total = (Number(p.last_7_days) || 0) + errors;
+  const name = (m) => m.startsWith("student:") ? studentName(m.slice(8)) : m.startsWith("system_one:") ? `System One · ${esc(m.slice(11))}` : m === "cache" ? "Cache" : esc(m);
+  const perAnswer = p.system_one_cost_per_answer_usd, cached = Number(p.cache_7_days) > 0;
+  return `<section class="panel"><div class="panel-head"><h2>Traffic · last 7 days</h2>${legend(cached)}</div>
+    <div class="panel-body">
+      <dl class="facts" style="margin-bottom:14px">
+        <dt>Requests</dt><dd>${fmt(total)}${errors ? ` · <span style="color:var(--bad)">${fmt(errors)} failed (${pct(errors / total, 1)})</span>` : ""}</dd>
+        <dt>Answered by the student</dt><dd>${pct(p.student_share_7_days, 1)}</dd>
+        ${cached ? `<dt>Answered from the cache</dt><dd>${pct(p.cache_share_7_days, 1)} <span class="muted small">${fmt(p.cache_7_days)} answers System One gave before</span></dd>` : ""}
+        <dt>System One cost</dt><dd>${usd(p.system_one_cost_usd_7_days)}${perAnswer != null ? ` · ${usd(perAnswer)} an answer, ${usd(perAnswer * 1e6)} a million` : ""}</dd>
+        <dt>Saved by the student</dt><dd>${p.student_savings_usd_7_days != null ? `${usd(p.student_savings_usd_7_days)} <span class="muted small">its answers at System One's average cost</span>` : "—"}</dd>
+        ${cached ? `<dt>Saved by the cache</dt><dd>${usd(p.cache_savings_usd_7_days)}</dd>` : ""}
+        <dt>System One price</dt><dd>${esc(pricingText(p.system_one_pricing))} <span class="muted small">set in <a href="/admin#models">Settings</a></span></dd>
+        <dt>Average time</dt><dd>${(p.avg_latency_ms_7_days || 0).toFixed(1)} ms</dd>
+        <dt>Last 14 days</dt><dd>${spark(p.daily)}</dd>
+      </dl>
+      ${rows.length ? `<div class="table-wrap"><table class="inner-table"><thead><tr><th>Answered by</th><th class="num">Requests</th><th class="num">Median request</th><th class="num">Slowest</th></tr></thead><tbody>
+        ${rows.map((r) => `<tr><td>${name(r.model)}</td><td class="num">${fmt(r.count)}</td><td class="num">${msText(r.p50_ms)} ms</td><td class="num">${msText(r.max_ms)} ms</td></tr>`).join("")}
+      </tbody></table></div>
+      <p class="muted small" style="margin:10px 0 0">Whole requests in the gateway, from arrival to answer. Under load they include waiting: a student answers one request at a time, so more requests at once than it can take queue up, and its requests take longer than its model speed.</p>` : '<p class="muted">No timed requests yet.</p>'}
+    </div></section>`;
+}
+
+function jobState(j) {
+  if (j.phase === "cancelled") return ["Cancelled", ""];
+  return {done: ["Completed", "ok"], failed: ["Failed", "bad"], running: ["Running", "info"], queued: ["Queued", ""]}[j.status] || [j.status, ""];
+}
+function jobProgress(j) {
+  if (j.status === "running") {
+    const stage = STAGE_TEXT[j.phase] || "Starting";
+    return `${esc(stage)}${j.done != null && j.total > 0 ? `<div style="margin-top:6px;max-width:220px">${bar(j.done, j.total, stage)}</div><div class="muted small">${fmt(j.done)} / ${fmt(j.total)}</div>` : ""}`;
+  }
+  if (j.status === "failed" && j.phase !== "cancelled") return j.last_stage ? `While ${esc((STAGE_TEXT[j.last_stage] || j.last_stage).toLowerCase())}` : '<span class="muted">—</span>';
+  if (j.status === "queued") return '<span class="muted">Waiting for a worker</span>';
+  return '<span class="muted">—</span>';
+}
+function historyTable(jobs, withPrompt) {
+  if (!jobs?.length) return '<p class="muted">No training attempts yet.</p>';
+  return `<div class="table-wrap"><table class="inner-table"><thead><tr>${withPrompt ? "<th>Prompt</th>" : ""}<th>Status</th><th>Progress</th><th class="hide-sm">Created</th><th class="hide-sm">Started</th><th>Duration</th></tr></thead><tbody>
+    ${jobs.map((j) => { const [label, tone] = jobState(j);
+      return `<tr>${withPrompt ? `<td><a href="/#prompt-${esc(j.prompt_id)}">${esc(j.prompt?.title || j.prompt_id)}</a><div class="muted small mono">${esc(j.id)}</div></td>` : ""}
+        <td><span class="badge ${tone}">${esc(label)}</span></td><td>${jobProgress(j)}</td>
+        <td class="hide-sm">${when(j.created_at)}</td><td class="hide-sm">${when(j.started_at)}</td><td>${esc(duration(j))}</td></tr>`; }).join("")}
+  </tbody></table></div>`;
+}
+
+function disclosure(key, summary, body) {
+  return `<details data-key="${esc(key)}" ${openDetails.has(key) ? "open" : ""}><summary>${summary}</summary><div style="margin-top:12px">${body}</div></details>`;
+}
+
+function detail(p) {
+  const l = lifecycle(p);
+  return `<tr class="detail" id="detail-${esc(p.id)}"><td colspan="6"><div class="detail-body">
+    ${statusCallout(l)}
+    <section class="panel"><div class="panel-body">${stepper(l)}</div></section>
+    ${auditPanel(p)}
+    <div class="grid-2">${studentPanel(p) || `<section class="panel"><div class="panel-head"><h2>Student</h2></div><div class="panel-body muted">No student has been trained for this prompt yet. It will be a fine-tuned <b>${esc(p.resolved_base_model || p.base_model)}</b>, labeled by <b>${esc(shortModel(p.judge_model_id) || "the judge set in Settings")}</b>.</div></section>`}${trafficPanel(p)}</div>
+    <section class="panel"><div class="panel-body" style="display:grid;gap:14px">
+      ${disclosure(`history-${p.id}`, `Training history · ${fmt((p.history || []).length)} attempt${(p.history || []).length === 1 ? "" : "s"}`, historyTable(p.history, false))}
+      ${disclosure(`prompt-${p.id}`, `Prompt and its ${fmt(p.labels.length)} labels`, `<div class="muted small mono">${esc(p.id)}</div><pre class="instructions">${esc(p.instructions)}</pre><div class="chips">${p.labels.map((x) => `<span class="chip">${esc(x)}</span>`).join("")}</div>`)}
+    </div></section>
+  </div></td></tr>`;
+}
+
+// ---- views --------------------------------------------------------------------------------------
+async function renderOverview() {
+  const [s, prompts] = await Promise.all([api("/api/summary"), api("/api/prompts?limit=100&days=14")]);
+  if (firstRender) {
+    const wanted = prompts.find((p) => location.hash === `#prompt-${p.id}`) || (prompts.length === 1 ? prompts[0] : null);
+    if (wanted) open.add(wanted.id);
+  }
+  await Promise.all(prompts.filter((p) => open.has(p.id)).map(async (p) => { p.history = await api(`/api/jobs?prompt_id=${encodeURIComponent(p.id)}`); }));
+  const testing = prompts.filter((p) => p.deployment?.active && p.monitor?.phase === "shadow").length;
+  const kpis = [
+    ["Requests today", fmt(s.requests_today), `${fmt(s.requests_total)} in all`],
+    ["Requests, last 7 days", fmt(s.requests_7_days), ""],
+    ["Answered by students", pct(s.student_share_7_days, 1), s.cache_7_days ? `last 7 days · ${pct(s.cache_share_7_days, 1)} from the cache` : "last 7 days"],
+    ["Live students", fmt(s.students), `${fmt(s.prompts)} prompt${s.prompts === 1 ? "" : "s"}${testing ? ` · ${fmt(testing)} in test` : ""}`],
+    ["System One cost, last 7 days", usd(s.system_one_cost_usd_7_days), s.student_savings_usd_7_days || s.cache_savings_usd_7_days
+      ? `${usd((s.student_savings_usd_7_days || 0) + (s.cache_savings_usd_7_days || 0))} saved by ${s.cache_savings_usd_7_days ? (s.student_savings_usd_7_days ? "students and the cache" : "the cache") : "students"}`
+      : "estimated at each model's price"],
+  ];
+  const rows = prompts.map((p) => {
+    const l = lifecycle(p), isOpen = open.has(p.id);
+    return `<tr class="prompt-row ${isOpen ? "open" : ""}" id="prompt-${esc(p.id)}" data-id="${esc(p.id)}">
+      <td><button class="row-toggle" aria-expanded="${isOpen}" aria-controls="detail-${esc(p.id)}"><span class="chev" aria-hidden="true">›</span>${esc(p.title)}</button>
+        <div class="sub-line">${fmt(p.labels.length)} labels · System One: ${esc(systemOneName(p))}${p.overrides?.per_language ? " · a student per language" : ""}</div></td>
+      <td class="num">${fmt(p.total)}<div class="muted small">${fmt(p.today)} today</div></td>
+      <td class="hide-sm">${spark(p.daily)}</td>
+      <td class="num hide-sm"><div class="share"><div class="bar"><i style="width:${((p.student_share_7_days || 0) * 100).toFixed(1)}%"></i></div>${pct(p.student_share_7_days)}</div>${p.cache_7_days ? `<div class="muted small">${pct(p.cache_share_7_days)} from the cache</div>` : ""}</td>
+      <td class="num hide-sm">${usd(p.system_one_cost_usd_7_days)}${p.student_savings_usd_7_days ? `<div class="muted small">${usd(p.student_savings_usd_7_days)} saved</div>` : ""}</td>
+      <td class="status-cell"><span class="badge ${l.tone}">${esc(l.badge)}</span><div class="note">${esc(l.short)}</div></td>
+    </tr>${isOpen ? detail(p) : ""}`;
+  }).join("");
+  $("main").innerHTML = `
+    <div class="page-head"><div><h1>Overview</h1><p>Each prompt gets its own small student model. It is trained on logged requests, tested in shadow, then answers the requests it is confident about.</p></div></div>
+    <section class="kpis">${kpis.map(([k, v, sub]) => `<div class="panel kpi"><div class="label">${k}</div><div class="value">${v}</div>${sub ? `<div class="sub">${sub}</div>` : ""}</div>`).join("")}</section>
+    <section class="panel">
+      <div class="panel-head"><h2>Prompts</h2>${legend(s.cache_7_days > 0)}</div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Prompt</th><th class="num">Requests</th><th class="hide-sm">Last 14 days</th><th class="num hide-sm">Student share (7 d)</th><th class="num hide-sm">System One cost (7 d)</th><th>Status</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="6" class="empty">No requests yet. Send one to <code>/v1/classify</code>, or run <code>make traffic</code>.</td></tr>`}</tbody>
+      </table></div>
+    </section>`;
+  document.querySelectorAll("tr.prompt-row").forEach((tr) => tr.onclick = (e) => {
+    if (e.target.closest("a")) return;
+    const id = tr.dataset.id; open.has(id) ? open.delete(id) : open.add(id); refresh();
+  });
+  document.querySelectorAll("details[data-key]").forEach((el) => el.ontoggle = () => { el.open ? openDetails.add(el.dataset.key) : openDetails.delete(el.dataset.key); });
+  if (firstRender && location.hash) document.getElementById(location.hash.slice(1))?.scrollIntoView();
+}
+
+async function renderJobs() {
+  const jobs = await api("/api/jobs");
+  const active = jobs.filter((j) => j.status === "queued" || j.status === "running").length;
+  $("main").innerHTML = `
+    <div class="page-head"><div><h1>Training jobs</h1><p>Every attempt to train a student, newest first. A worker claims queued jobs; a failed one is retried automatically.</p></div>
+      <span class="badge ${active ? "info" : ""}">${active ? `${fmt(active)} active` : "Idle"}</span></div>
+    <section class="panel"><div class="panel-body">${historyTable(jobs, true)}</div></section>
+    <p class="muted small">Error messages, cancel and retry are in <a href="/admin#jobs">Settings</a>.</p>`;
+}
+
+async function refresh() {
+  if (VIEW === "jobs") await renderJobs(); else await renderOverview();
+  firstRender = false;
+  $("updated").textContent = `Updated ${new Date().toLocaleTimeString([], {hour: "2-digit", minute: "2-digit", second: "2-digit"})}`;
+}
+
+document.querySelector(`.nav a[href="${VIEW === "jobs" ? "/jobs" : "/"}"]`).classList.add("on");
+document.title = VIEW === "jobs" ? "Training · SystemNone" : "Overview · SystemNone";
+refresh().catch((e) => { if (e.message !== "unauthorized") { console.error(e); $("updated").textContent = "Gateway unreachable"; } });
+setInterval(() => { if (!document.hidden) refresh().catch(() => { $("updated").textContent = "Gateway unreachable"; }); }, 5000);
+</script>
+</body>
+</html>

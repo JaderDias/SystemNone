@@ -1,0 +1,17 @@
+runs/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+*.onnx
+gateway/target/
+gateway-data/
+result
+result-*
+.env
+.venv/
+.venv-decider/
+# Machine-specific make targets and their files (see the end of the Makefile)
+local.mk
+local/
+video/node_modules/
+video/out/

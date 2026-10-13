@@ -1,0 +1,23 @@
+# Pulls the images that CI builds with Nix and publishes (see README). Put the tokens in .env;
+# SN_IMAGE_TAG=sha-<commit> there pins a build, and `nix run .#compose` loads local builds instead.
+name: system-none
+
+x-hardened: &hardened
+  env_file: [.env]
+  volumes: [data:/data]
+  restart: unless-stopped
+  cap_drop: [ALL]                           # neither service needs a Linux capability
+  security_opt: [no-new-privileges:true]    # or a setuid binary
+
+services:
+  gateway:
+    <<: *hardened
+    image: ghcr.io/jaderdias/system-none-gateway:${SN_IMAGE_TAG:-latest}
+    ports: ["8080:8080"]
+  worker:
+    <<: *hardened
+    image: ghcr.io/jaderdias/system-none-worker:${SN_IMAGE_TAG:-latest}
+    depends_on: [gateway]
+
+volumes:
+  data: {}

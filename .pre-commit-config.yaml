@@ -1,0 +1,8 @@
+# `uvx pre-commit install` once in your clone, and gitleaks checks what each commit stages, so a
+# secret stops there instead of reaching GitHub (the Security workflow scans every commit too).
+# pre-commit builds gitleaks with Go, which it downloads if it isn't installed.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: 83d9cd684c87d95d656c1458ef04895a7f1cbd8e # frozen: v8.30.1
+    hooks:
+      - id: gitleaks

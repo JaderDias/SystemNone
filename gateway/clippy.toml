@@ -1,0 +1,3 @@
+# Names that doc comments use as names, not code, so doc_markdown doesn't want them in backticks
+# (".." keeps clippy's own list, which has SQLite in newer versions).
+doc-valid-idents = ["SystemNone", "TypeSafe", "GLiDE", "EmbeddingGemma", "SQLite", ".."]

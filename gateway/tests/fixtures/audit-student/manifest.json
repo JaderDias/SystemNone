@@ -1,0 +1,1 @@
+{"labels": ["refund", "cancel", "other"], "inputs": ["input_ids", "attention_mask"], "source_model": "audit-fixture", "max_length": 32}

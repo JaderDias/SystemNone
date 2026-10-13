@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings · SystemNone</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<style>
+/* ---- Design system: shared with index.html ------------------------------------------------- */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #f3f4f6; --border: #e5e7eb; --border-strong: #d1d5db;
+  --text: #111827; --text-2: #4b5563; --text-3: #6b7280;
+  --accent: #4f46e5; --accent-soft: #eef2ff; --on-accent: #ffffff;
+  --ok: #047857; --ok-soft: #ecfdf5; --warn: #b45309; --warn-soft: #fffbeb;
+  --bad: #b91c1c; --bad-soft: #fef2f2; --info: #1d4ed8; --info-soft: #eff6ff;
+  --student: #10b981; --s1: #cbd5e1;
+  --radius: 10px; --shadow: 0 1px 2px rgba(16, 24, 40, .05);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0f17; --surface: #121826; --surface-2: #1a2131; --border: #263042; --border-strong: #354156;
+    --text: #e5e7eb; --text-2: #b4bccb; --text-3: #8b95a7;
+    --accent: #818cf8; --accent-soft: rgba(129, 140, 248, .14); --on-accent: #0b0f17;
+    --ok: #34d399; --ok-soft: rgba(52, 211, 153, .12); --warn: #fbbf24; --warn-soft: rgba(251, 191, 36, .12);
+    --bad: #f87171; --bad-soft: rgba(248, 113, 113, .12); --info: #60a5fa; --info-soft: rgba(96, 165, 250, .12);
+    --student: #34d399; --s1: #475569; --shadow: none;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.55 Inter, "Segoe UI", system-ui, -apple-system, sans-serif; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+code, .mono { font-family: var(--mono); font-size: 12.5px; }
+code { background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 1px 5px; }
+.topbar { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 10; }
+.topbar-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 56px; display: flex; align-items: center; gap: 28px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 650; font-size: 15px; letter-spacing: -.01em; color: var(--text); white-space: nowrap; }
+.brand img { display: block; }
+.nav { display: flex; gap: 4px; height: 100%; }
+.nav a { display: flex; align-items: center; padding: 0 12px; color: var(--text-2); font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.nav a:hover { color: var(--text); text-decoration: none; }
+.nav a.on { color: var(--text); border-bottom-color: var(--accent); }
+.topbar .meta { margin-left: auto; color: var(--text-3); font-size: 12.5px; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); }
+.page { max-width: 1200px; margin: 0 auto; padding: 28px 24px 72px; }
+.page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+.page-head h1 { font-size: 22px; line-height: 1.25; margin: 0; letter-spacing: -.02em; font-weight: 650; }
+.page-head p { margin: 4px 0 0; color: var(--text-2); }
+h2 { font-size: 15px; margin: 0; font-weight: 650; letter-spacing: -.005em; }
+h3 { font-size: 13px; margin: 0 0 10px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: .04em; }
+.muted { color: var(--text-3); }
+.small { font-size: 12.5px; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+.panel-head { padding: 14px 18px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.panel-body { padding: 18px; }
+.kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
+.kpi { padding: 16px 18px; }
+.kpi .label { color: var(--text-3); font-size: 12.5px; font-weight: 500; }
+.kpi .value { font-size: 24px; font-weight: 650; letter-spacing: -.02em; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.kpi .sub { color: var(--text-3); font-size: 12px; margin-top: 2px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; font-weight: 500; color: var(--text-3); font-size: 12px; padding: 10px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; background: var(--surface-2); }
+td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child > td { border-bottom: 0; }
+th.num, td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 10px 2px 8px; font-size: 12px; font-weight: 550; white-space: nowrap; background: var(--surface-2); color: var(--text-2); border: 1px solid var(--border); }
+.badge::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.badge.ok { background: var(--ok-soft); color: var(--ok); border-color: transparent; }
+.badge.warn { background: var(--warn-soft); color: var(--warn); border-color: transparent; }
+.badge.bad { background: var(--bad-soft); color: var(--bad); border-color: transparent; }
+.badge.info { background: var(--info-soft); color: var(--info); border-color: transparent; }
+.bar { height: 6px; border-radius: 3px; background: var(--surface-2); overflow: hidden; border: 1px solid var(--border); }
+.bar > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.bar.indeterminate > i { width: 35%; animation: slide 1.6s ease-in-out infinite alternate; }
+@keyframes slide { from { transform: translateX(-10%); } to { transform: translateX(200%); } }
+@media (prefers-reduced-motion: reduce) { .bar.indeterminate > i { animation: none; } }
+.empty { padding: 48px 24px; text-align: center; color: var(--text-3); }
+.gate { max-width: 400px; margin: 72px auto; }
+input, select, textarea { font: inherit; padding: 8px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface); color: var(--text); width: 100%; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible, .row-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button { font: inherit; font-weight: 550; font-size: 13px; padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border-strong); background: var(--surface); color: var(--text); cursor: pointer; }
+button:hover { background: var(--surface-2); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+button.primary:hover { filter: brightness(1.06); }
+details > summary { cursor: pointer; color: var(--text-2); font-weight: 550; list-style: none; display: flex; align-items: center; gap: 8px; }
+details > summary::-webkit-details-marker { display: none; }
+details > summary::before { content: "›"; display: inline-block; width: 10px; transition: transform .15s; color: var(--text-3); font-size: 16px; line-height: 1; }
+details[open] > summary::before { transform: rotate(90deg); }
+@media (max-width: 640px) {
+  .topbar-inner { padding: 0 16px; gap: 12px; }
+  .topbar .meta { display: none; }
+  .nav a { padding: 0 8px; }
+  .page { padding: 20px 16px 56px; }
+  .hide-sm { display: none; }
+  td, th { padding: 12px 10px; }
+}
+@media (max-width: 420px) {
+  .brand { font-size: 0; gap: 0; }
+}
+
+/* ---- Settings ------------------------------------------------------------------------------- */
+.layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 28px; align-items: start; }
+.toc { position: sticky; top: 80px; display: grid; gap: 2px; }
+.toc a { color: var(--text-2); padding: 6px 10px; border-radius: 6px; font-weight: 500; }
+.toc a:hover { background: var(--surface); text-decoration: none; color: var(--text); }
+.sections { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; min-width: 0; }
+.section-head { margin-bottom: 12px; }
+.section-head h2 { font-size: 17px; }
+.section-head p { margin: 4px 0 0; color: var(--text-2); max-width: 760px; }
+.stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px 16px; }
+label.field { display: grid; gap: 5px; font-size: 13px; color: var(--text-2); font-weight: 500; align-content: start; }
+label.field .help { font-weight: 400; color: var(--text-3); font-size: 12px; }
+label.check { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: var(--text); }
+label.check input { width: 16px; height: 16px; margin: 2px 0 0; flex: none; accent-color: var(--accent); }
+label.check .help { display: block; color: var(--text-3); font-size: 12px; }
+textarea { font-family: var(--mono); font-size: 12.5px; min-height: 76px; resize: vertical; }
+input:disabled { opacity: .55; }
+fieldset { border: 0; padding: 0; margin: 0; }
+fieldset + fieldset { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 18px; }
+legend { font-weight: 650; padding: 0; margin-bottom: 4px; }
+fieldset > p { margin: 0 0 12px; color: var(--text-3); font-size: 12.5px; max-width: 760px; }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.panel-foot { padding: 12px 18px; border-top: 1px solid var(--border); background: var(--surface-2); border-radius: 0 0 var(--radius) var(--radius); }
+button.danger { color: var(--bad); }
+button.danger:hover { background: var(--bad-soft); }
+button:disabled { opacity: .5; cursor: default; }
+.prompt-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; }
+.data-box code { overflow-wrap: anywhere; }
+.data-box { background: var(--surface-2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 13px; color: var(--text-2); }
+.data-box b { color: var(--text); }
+.data-box p { margin: 6px 0 0; }
+.kv { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0; }
+.kv span:first-child { color: var(--text-3); }
+.kv span:last-child { font-variant-numeric: tabular-nums; text-align: right; }
+.message { max-width: 420px; overflow-wrap: anywhere; color: var(--text-2); font-size: 13px; }
+details.form { border-top: 1px solid var(--border); padding: 14px 18px; }
+details.form[open] > summary { margin-bottom: 14px; }
+.hint-list { margin: 8px 0 0; padding-left: 18px; color: var(--text-3); font-size: 12.5px; }
+.hint-list li { margin: 3px 0; }
+#toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); padding: 10px 16px; border-radius: 8px; background: var(--text); color: var(--bg); font-size: 13.5px; display: none; max-width: min(560px, 92vw); box-shadow: 0 8px 24px rgba(0, 0, 0, .18); z-index: 20; }
+#toast.err { background: var(--bad); color: #fff; }
+@media (max-width: 960px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  .toc { position: static; display: flex; flex-wrap: wrap; }
+  .prompt-grid { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+<header class="topbar"><div class="topbar-inner">
+  <a class="brand" href="/"><img src="/favicon.svg" width="24" height="24" alt="" aria-hidden="true">SystemNone</a>
+  <nav class="nav" aria-label="Main"><a href="/">Overview</a><a href="/jobs">Training</a><a class="on" href="/admin">Settings</a></nav>
+  <span class="meta" id="storeinfo"></span>
+</div></header>
+<main class="page" id="main">
+  <section class="panel gate"><div class="panel-body">
+    <h2>Admin token</h2>
+    <p class="muted">Use the <code>SN_ADMIN_TOKEN</code> the gateway was started with. <code>make</code> writes one to <code>.env</code>, which Docker Compose reads too.</p>
+    <input id="tok" type="password" placeholder="Token" autocomplete="off" aria-label="Admin token">
+    <div style="margin-top:12px"><button class="primary" id="unlock">Unlock</button></div>
+  </div></section>
+</main>
+<div id="toast" role="status" aria-live="polite"></div>
+<datalist id="base-models">
+  <option value="jhu-clsp/ettin-encoder-17m">Ettin 17M (default)</option>
+  <option value="jhu-clsp/ettin-encoder-32m">Ettin 32M</option>
+  <option value="jhu-clsp/ettin-encoder-150m">Ettin 150M</option>
+  <option value="google/embeddinggemma-300m">frozen, only a head is trained: few labels, no GPU (gated)</option>
+  <option value="microsoft/mdeberta-v3-base">multilingual, 86M + 190M embeddings</option>
+  <option value="microsoft/deberta-v3-small">English, 44M</option>
+  <option value="microsoft/deberta-v3-base">English, 86M</option>
+  <option value="FacebookAI/xlm-roberta-base">multilingual</option>
+  <option value="answerdotai/ModernBERT-base">English, long inputs</option>
+  <option value="jhu-clsp/mmBERT-base">multilingual, 110 languages</option>
+</datalist>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const fmt = (n) => Number(n || 0).toLocaleString();
+const pct = (x, digits = 0) => x == null || !Number.isFinite(Number(x)) ? "—" : `${(Number(x) * 100).toFixed(digits)}%`;
+// TypeSafe Jev's list price, every System One model's until changed: $42 per billion input tokens, output free.
+const JEV_PRICING = {usd_per_call: 0, usd_per_million_input_tokens: 0.042, usd_per_million_output_tokens: 0};
+function priceText(pr) {
+  pr = pr || JEV_PRICING;
+  const parts = [[pr.usd_per_call, "/call"], [pr.usd_per_million_input_tokens, "/M in"], [pr.usd_per_million_output_tokens, "/M out"]]
+    .filter(([x]) => x > 0).map(([x, unit]) => `$${x}${unit}`);
+  return parts.length ? parts.join(" + ") : "free";
+}
+const shortModel = (id) => String(id || "").split("/").pop();
+let token = null, state = null;
+try { token = sessionStorage.getItem("sn-admin-token"); } catch (e) {}
+
+function toast(msg, bad) {
+  const t = $("toast"); t.textContent = msg; t.className = bad ? "err" : ""; t.style.display = "block";
+  clearTimeout(toast.h); toast.h = setTimeout(() => t.style.display = "none", bad ? 8000 : 2800);
+}
+
+async function api(method, path, body) {
+  const r = await fetch(path, {method, headers: {"Content-Type": "application/json", Authorization: `Bearer ${token}`},
+                               body: body === undefined ? undefined : JSON.stringify(body)});
+  if (r.status === 401) { token = null; try { sessionStorage.removeItem("sn-admin-token"); } catch (e) {} renderGate("That token was not accepted."); throw new Error("unauthorized"); }
+  const text = await r.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (e) { data = {error: text}; }
+  if (!r.ok) throw new Error((data && data.error) || `${r.status}`);
+  return data;
+}
+
+async function act(fn, ok) {
+  try { await fn(); if (ok) toast(ok); await load(); } catch (e) { if (e.message !== "unauthorized") toast(e.message, true); }
+}
+
+const TOKEN_HINT = "Use the <code>SN_ADMIN_TOKEN</code> the gateway was started with. <code>make</code> writes one to <code>.env</code>, which Docker Compose reads too.";
+function renderGate(msg) {
+  $("main").innerHTML = `<section class="panel gate"><div class="panel-body"><h2>Admin token</h2><p class="muted">${msg ? esc(msg) + " " : ""}${TOKEN_HINT}</p>
+    <input id="tok" type="password" placeholder="Token" autocomplete="off" aria-label="Admin token"><div style="margin-top:12px"><button class="primary" id="unlock">Unlock</button></div></div></section>`;
+  bindGate();
+}
+function bindGate() {
+  const go = () => { token = $("tok").value.trim(); try { sessionStorage.setItem("sn-admin-token", token); } catch (e) {} load().catch(() => {}); };
+  $("unlock").onclick = go; $("tok").onkeydown = (e) => { if (e.key === "Enter") go(); };
+}
+
+const opt = (v, label, sel) => `<option value="${esc(v)}" ${sel ? "selected" : ""}>${esc(label)}</option>`;
+const STATUS = {collecting: ["Collecting", ""], queued: ["Queued", "info"], training: ["Training", "info"], shadow: ["Testing", "warn"],
+  deployed: ["Live", "ok"], drifted: ["Stopped", "bad"], rejected: ["Failed test", "bad"], failed: ["Training failed", "bad"]};
+function statusBadge(status, id) {
+  const [label, tone] = STATUS[status] || [status, ""];
+  return `<span class="badge ${tone}" ${id ? `data-status="${esc(id)}"` : ""}>${esc(label)}</span>`;
+}
+function field(label, input, help) { return `<label class="field">${label}${input}${help ? `<span class="help">${help}</span>` : ""}</label>`; }
+function check(id, checked, label, help) { return `<label class="check"><input id="${id}" type="checkbox" ${checked ? "checked" : ""}><span>${label}${help ? `<span class="help">${help}</span>` : ""}</span></label>`; }
+
+// ---- prompts ------------------------------------------------------------------------------------
+function trainingData(p) {
+  const dep = p.deployment, r = dep?.metrics?.reference_labels, h = dep?.metrics?.human, m = p.monitor;
+  const used = r && (r.train || r.audit)
+    ? `<b>Latest student:</b> trained with ${fmt(r.train)} known answers; ${fmt(r.audit)} kept out to test it.`
+    : dep ? "<b>Latest student:</b> trained on judge labels only." : "No student trained yet.";
+  return `<div class="data-box">
+    <div>${used}</div>
+    ${h ? `<div class="kv"><span>Right on held-out known answers</span><span>${pct(h.accuracy, 1)} of ${fmt(h.n)}</span></div>${h.judge_accuracy != null ? `<div class="kv"><span>Judge on the same answers</span><span>${pct(h.judge_accuracy, 1)}</span></div>` : ""}` : ""}
+    ${m ? `<div class="kv"><span>Audit (${esc(m.phase)})</span><span>${m.agreement != null ? `${pct(m.agreement, 1)} of ${fmt(m.samples)}` : "no checks yet"} · needs ${pct(m.agreement_boundary, 1)}</span></div>` : ""}
+    <p><b>Labeled examples</b> give better students and an honest test. Upload a dataset's answers with
+      <code>make labels DATASET=banking77</code>: its training split trains the student instead of the judge's labels, and its test split is what the student is audited against.
+      Your own files go in the store under <code>human_labels/${esc(p.id)}/</code>, one <code>{"text", "label", "split": "train" | "audit"}</code> per line.</p>
+  </div>`;
+}
+
+function promptPanel(p) {
+  const s = state.settings, o = p.overrides || {}, s1 = state.system_one_models, judges = state.judges;
+  const dep = p.deployment;
+  const baseModels = [...new Set(["jhu-clsp/ettin-encoder-17m", "jhu-clsp/ettin-encoder-32m", "jhu-clsp/ettin-encoder-150m", "microsoft/mdeberta-v3-base", ...(o.base_model ? [o.base_model] : [])])];
+  return `<section class="panel" id="p-${esc(p.id)}">
+    <div class="panel-head"><div><h2>${esc(p.title)}</h2><div class="muted small"><span class="mono">${esc(p.id)}</span> · ${fmt(p.labels.length)} labels · ${fmt(p.total)} requests</div></div>${statusBadge(p.status, p.id)}</div>
+    <div class="panel-body prompt-grid">
+      <div class="form-grid" data-pid="${esc(p.id)}">
+        ${field("Answers today (System One)", `<select data-f="system_one_model">${opt("", `Default${s.default_system_one ? ` (${s.default_system_one})` : ""}`)}${s1.map((m) => opt(m.name, m.name, m.name === o.system_one_model)).join("")}</select>`)}
+        ${field("Labels training data (judge)", `<select data-f="judge">${opt("", `Default${s.default_judge ? ` (${s.default_judge})` : ""}`)}${judges.map((j) => opt(j.name, j.name, j.name === o.judge)).join("")}</select>`)}
+        ${field("Student base model", `<select data-f="base_model">${opt("", `Default (${shortModel(s.default_base_model)})`, !o.base_model)}${baseModels.map((m) => opt(m, m, m === o.base_model)).join("")}</select>`)}
+        ${field("Requests before training", `<input data-f="threshold" type="number" min="1" placeholder="${s.default_threshold}" value="${o.threshold ?? ""}">`)}
+        ${field("Target agreement", `<input data-f="target_accuracy" type="number" step="0.01" min="0.5" max="1" placeholder="${s.default_target_accuracy}" value="${o.target_accuracy ?? ""}">`, "Share of the student's confident answers that must match the reference.")}
+        <label class="check"><input data-f="per_language" type="checkbox" ${o.per_language ? "checked" : ""}><span>A student per language<span class="help">Besides this prompt's student, a small one (${esc(shortModel(s.per_language.base_model))}) for each language the router is sure of in at least ${fmt(s.per_language.min_examples)} requests, from the next training.</span></span></label>
+      </div>
+      ${trainingData(p)}
+    </div>
+    <div class="panel-foot actions">
+      <button class="primary" data-save-p="${esc(p.id)}">Save</button>
+      <button data-train="${esc(p.id)}" title="Save, then queue a training job now">Train now</button>
+      ${dep ? `<button data-audit="${esc(p.id)}" title="Test the latest student again from scratch, with the current settings. System One answers until it passes.">Re-run test</button>` : ""}
+      ${dep?.active ? `<button class="danger" data-undeploy="${esc(p.id)}" title="System One answers every request again">Stop student</button>` : ""}
+      <span class="muted small">Empty fields use the defaults.</span>
+    </div>
+  </section>`;
+}
+
+// ---- models -------------------------------------------------------------------------------------
+function modelsSection() {
+  const s1 = state.system_one_models, judges = state.judges;
+  return `
+  <section class="panel">
+    <div class="panel-head"><div><h2>System One models</h2><div class="muted small">Answer requests while a prompt has no confident student.</div></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Kind</th><th>Model</th><th class="hide-sm">Endpoint</th><th class="hide-sm">Price</th><th>Escalates to</th><th>Status</th><th></th></tr></thead><tbody>
+      ${s1.length ? s1.map((m) => `<tr><td><b>${esc(m.name)}</b>${m.name === state.settings.default_system_one ? ' <span class="badge info">default</span>' : ""}</td><td>${esc(m.kind)}</td><td>${esc(m.model)}</td><td class="hide-sm mono">${esc(m.base_url)}</td><td class="hide-sm">${esc(priceText(m.pricing))}</td>
+        <td>${m.escalate_to ? `${esc(m.escalate_to)} below ${m.escalate_below}` : '<span class="muted">—</span>'}</td><td>${m.enabled ? '<span class="badge ok">On</span>' : '<span class="badge">Off</span>'}</td>
+        <td class="num"><button data-edit-s1="${esc(m.name)}">Edit</button> <button class="danger" data-del-s1="${esc(m.name)}">Delete</button></td></tr>`).join("") : `<tr><td colspan="8" class="empty">None yet: add one below.</td></tr>`}
+    </tbody></table></div>
+    <details class="form" id="s1-form"><summary>Add or edit a System One model</summary>
+      <div class="form-grid">
+        ${field("Name", '<input id="m-name" placeholder="jev-fast">')}
+        ${field("Kind", `<select id="m-kind">${opt("openai_chat", "openai_chat")}${opt("decision_http", "decision_http")}${opt("systemone", "systemone")}${opt("openai_decisions", "openai_decisions")}</select>`)}
+        ${field("Endpoint URL", '<input id="m-url" placeholder="https://host/v1">')}
+        ${field("Model", '<input id="m-model">')}
+        ${field("API key env var", '<input id="m-key" placeholder="SYSTEM_ONE_API_KEY">')}
+        ${field("Timeout (ms)", '<input id="m-timeout" type="number" value="30000">')}
+        ${field("Escalate to", `<select id="m-escalate">${opt("", "None")}${s1.map((m) => opt(m.name, m.name)).join("")}</select>`, "A stronger model answers when this one is unsure.")}
+        ${field("…when confidence is below", '<input id="m-below" type="number" min="0" max="1" step="0.05" placeholder="0.6">')}
+        ${field("Price per call ($)", `<input id="m-usd-call" type="number" min="0" step="any" value="${JEV_PRICING.usd_per_call}">`)}
+        ${field("Per million input tokens ($)", `<input id="m-usd-in" type="number" min="0" step="any" value="${JEV_PRICING.usd_per_million_input_tokens}">`)}
+        ${field("Per million output tokens ($)", `<input id="m-usd-out" type="number" min="0" step="any" value="${JEV_PRICING.usd_per_million_output_tokens}">`)}
+      </div>
+      <p class="muted small" style="margin:10px 0 0">The price makes the cost estimate on the Overview: every answered call costs the price per call plus its tokens, as the model reports them, or about one token per four characters sent when it doesn't. The defaults are TypeSafe Jev's list price: $0.042 per million input tokens, output free. Set 0 for a model that costs nothing per call.</p>
+      <div class="actions" style="margin-top:14px">${check("m-logprobs", true, "Ask for logprobs (confidence)")}${check("m-enabled", true, "Enabled")}</div>
+      <ul class="hint-list">
+        <li><b>openai_chat</b>: any OpenAI-compatible endpoint (vLLM, Ollama, OpenRouter), asked for the option's letter, or the label's name above 26 labels.</li>
+        <li><b>systemone</b>: <code>POST /v1/systemone</code> under the endpoint URL (TypeSafe, a Decision or Decider server, Fastino GLiDE).</li>
+        <li><b>decision_http</b>: <code>POST {model, instructions, labels, input}</code> → <code>{label, confidence}</code>, for an adapter in front of another API.</li>
+        <li><b>openai_decisions</b>: <code>POST {URL}/decisions</code> (SGLang Decisions contract; URL ends in /v1; up to 26 options).</li>
+      </ul>
+      <div class="actions" style="margin-top:14px"><button class="primary" id="save-s1">Save System One model</button></div>
+    </details>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><div><h2>Judges</h2><div class="muted small">Label logged requests to train students, and check them in audits when a request has no known answer.</div></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Name</th><th>Model</th><th>Mode</th><th class="hide-sm">Endpoint</th><th>Status</th><th></th></tr></thead><tbody>
+      ${judges.length ? judges.map((j) => `<tr><td><b>${esc(j.name)}</b>${j.name === state.settings.default_judge ? ' <span class="badge info">default</span>' : ""}</td><td>${esc(j.model)}</td><td>${esc(j.mode)}</td><td class="hide-sm mono">${esc(j.base_url)}</td>
+        <td>${j.enabled ? '<span class="badge ok">On</span>' : '<span class="badge">Off</span>'}${j.license_ack ? "" : ' <span class="badge warn">License not confirmed</span>'}</td>
+        <td class="num"><button data-edit-j="${esc(j.name)}">Edit</button> <button class="danger" data-del-j="${esc(j.name)}">Delete</button></td></tr>`).join("") : `<tr><td colspan="6" class="empty">None yet: add one below.</td></tr>`}
+    </tbody></table></div>
+    <details class="form" id="j-form"><summary>Add or edit a judge</summary>
+      <div class="form-grid">
+        ${field("Name", '<input id="j-name" placeholder="qwen-judge">')}
+        ${field("Endpoint URL", '<input id="j-url" placeholder="http://vllm:8000/v1">')}
+        ${field("Model", '<input id="j-model" placeholder="Qwen/Qwen3-32B">')}
+        ${field("API key env var", '<input id="j-key">')}
+        ${field("Mode", `<select id="j-mode">${opt("logprobs", "logprobs (one call, soft labels)")}${opt("sample", "sample (vote shares)")}${opt("systemone", "systemone (POST /v1/systemone)")}${opt("openai_decisions", "openai_decisions")}</select>`)}
+        ${field("Samples (sample mode)", '<input id="j-samples" type="number" value="7" min="1">')}
+      </div>
+      <div class="stack" style="margin-top:14px">
+        ${check("j-enabled", true, "Enabled")}
+        ${check("j-ack", false, "I checked that this model's license and my provider's terms allow training models on its outputs.", "Services that forbid it (TypeSafe Jev, MCA §2.3(b); Fastino GLiDE, Terms §4.A) are refused as judges; they can still answer as System One.")}
+      </div>
+      <div class="actions" style="margin-top:14px"><button class="primary" id="save-judge">Save judge</button></div>
+    </details>
+  </section>`;
+}
+
+// ---- defaults -----------------------------------------------------------------------------------
+function defaultsSection() {
+  const s = state.settings, s1 = state.system_one_models, judges = state.judges, m = s.monitor;
+  const c = s.cache, cs = state.cache || {}, pl = s.per_language;
+  return `<section class="panel"><div class="panel-body">
+    <fieldset><legend>Models</legend><p>Used by every prompt that doesn't choose its own.</p>
+      <div class="form-grid">
+        ${field("System One model", `<select id="s-s1">${opt("", "None")}${s1.map((x) => opt(x.name, x.name, x.name === s.default_system_one)).join("")}</select>`)}
+        ${field("Judge", `<select id="s-judge">${opt("", "None")}${judges.map((j) => opt(j.name, j.name, j.name === s.default_judge)).join("")}</select>`)}
+        ${field("Student base model", `<input id="s-base" list="base-models" value="${esc(s.default_base_model)}">`, "Any Hugging Face encoder.")}
+      </div></fieldset>
+    <fieldset><legend>Training</legend>
+      <div class="form-grid">
+        ${field("Requests before training", `<input id="s-threshold" type="number" min="1" value="${s.default_threshold}">`)}
+        ${field("Attempts per training", `<input id="s-attempts" type="number" min="1" value="${s.max_attempts}">`, "A failed attempt is retried.")}
+        ${field("First retry after (s)", `<input id="s-retry" type="number" min="0" value="${s.retry_secs}">`, "Then doubles each time.")}
+        ${field("Longest retry wait (s)", `<input id="s-retry-max" type="number" min="0" value="${s.retry_max_secs}">`)}
+      </div>
+      <div style="margin-top:14px">${check("s-log", s.log_inputs, "Log request inputs", "Needed for training. Only inputs are stored, never answers.")}</div></fieldset>
+    <fieldset><legend>When the student may answer</legend><p>Each student gets a confidence threshold chosen on held-out examples so that its answers above it reach the target agreement.</p>
+      <div class="form-grid">
+        ${field("Target agreement", `<input id="s-target" type="number" min="0.5" max="1" step="0.01" value="${s.default_target_accuracy}">`, "For example 0.95: 95% of the answers it gives alone should match.")}
+        ${field("Threshold method", `<select id="s-calibration">${opt("empirical", "Measured agreement", s.calibration.method === "empirical")}${opt("clopper_pearson", "Clopper–Pearson lower bound", s.calibration.method === "clopper_pearson")}</select>`, "The lower bound is stricter: fewer answers, more certainty.")}
+        ${field("Statistical confidence (%)", `<input id="s-confidence" type="number" min="0.01" max="99.99" step="0.01" value="${Number((s.calibration.confidence_level * 100).toFixed(2))}" ${s.calibration.method === "empirical" ? "disabled" : ""}>`, "Lower bound only.")}
+      </div></fieldset>
+    <fieldset><legend>Students per language</legend>
+      <p>A prompt can train, besides its student for every language, a small student for each language the language router is sure of in enough requests (turn it on in the prompt's settings). The router tags every logged request with its language; a request it is sure enough of goes to its language's student, any other to the prompt's.</p>
+      <div class="form-grid">
+        ${field("Router's confidence", `<input id="s-pl-confidence" type="number" min="0.01" max="1" step="0.05" value="${pl.min_confidence}">`, "A request counts as its language from this confidence on, in training and in serving.")}
+        ${field("Requests a language needs", `<input id="s-pl-examples" type="number" min="20" value="${pl.min_examples}">`)}
+        ${field("Their base model", `<input id="s-pl-model" list="base-models" value="${esc(pl.base_model)}">`)}
+      </div></fieldset>
+    <fieldset><legend>Cache</legend>
+      <p>A cache keeps System One's answers in this gateway's memory, so a text it answered before gets the same answer again without a call (and costs nothing). It is kept per prompt and System One model, and emptied when a System One model changes or the gateway restarts.</p>
+      <div style="margin-bottom:14px">${check("s-cache", c.enabled, "Answer from the cache", "Off: every request the student doesn't answer goes to System One.")}</div>
+      <div class="form-grid">
+        ${field("Where", `<select id="s-cache-position">${opt("before_student", "Before the student: the first layer", c.position === "before_student")}${opt("after_student", "Between the student and System One", c.position === "after_student")}${opt("before_escalation", "Between System One and the model it escalates to", c.position === "before_escalation")}</select>`, "Each saves the call after it: before the student, a cached answer wins over the student's; between the student and System One, it answers what no confident student does; before an escalation, System One still answers, and only the stronger model's call is saved.")}
+        ${field("When full, drop", `<select id="s-cache-policy">${opt("lru", "The least recently used (LRU)", c.policy === "lru")}${opt("lfu", "The least frequently used (LFU)", c.policy === "lfu")}</select>`)}
+        ${field("Answers kept", `<input id="s-cache-capacity" type="number" min="1" value="${c.capacity}">`)}
+        ${field("Forget answers after (s)", `<input id="s-cache-ttl" type="number" min="0" value="${c.ttl_secs}">`, "0: never.")}
+      </div>
+      <div class="actions" style="margin-top:14px"><span class="muted small">${cs.enabled ? `${fmt(cs.entries)} answers kept · ${fmt(cs.hits)} hits, ${fmt(cs.misses)} misses${cs.hits + cs.misses ? ` (${pct(cs.hits / (cs.hits + cs.misses), 1)} hit rate)` : ""}, ${fmt(cs.evictions)} dropped since the gateway started` : "Off."}</span>
+        <button id="clear-cache" ${cs.entries ? "" : "disabled"}>Empty the cache</button></div></fieldset>
+    <fieldset><legend>Audits</legend>
+      <p>A new student is tested in shadow (System One keeps answering) and a live one keeps being checked. A check compares the student's confident answer with a <b>known answer</b> when the request's text has one, always and at no cost, and otherwise with the <b>judge</b> for a share of requests. A student fails only when its agreement is clearly below the target minus the allowed shortfall, not on noise.</p>
+      <div style="margin-bottom:14px">${check("s-monitor", m.enabled, "Test new students in shadow and audit live ones", "Off: a new student answers as soon as it is trained, and is never stopped automatically.")}</div>
+      <div class="form-grid">
+        ${field("Checks before deciding", `<input id="s-audit-min" type="number" min="1" value="${m.min_samples}">`, "Confident checks a test needs before it can pass.")}
+        ${field("Most checks per decision", `<input id="s-audit-window" type="number" min="1" max="10000" value="${m.window}">`, "A test decides by then; live audits use the latest this many.")}
+        ${field("Allowed shortfall", `<input id="s-audit-tolerance" type="number" min="0" max="0.5" step="0.01" value="${m.tolerance}">`, "Below the target agreement, for random variation.")}
+        ${field("Judge check share", `<input id="s-audit-rate" type="number" min="0.0001" max="1" step="0.01" value="${m.sample_rate}">`, "Of requests without a known answer.")}
+        ${field("…while evidence is thin", `<input id="s-audit-uncertain" type="number" min="0" max="1" step="0.01" value="${m.uncertain_sample_rate}">`, "Used until enough checks, or near the bar.")}
+        ${field("“Near the bar” margin", `<input id="s-audit-margin" type="number" min="0" max="0.5" step="0.01" value="${m.inconclusive_margin}">`)}
+      </div></fieldset>
+    <fieldset><legend>Advanced</legend>
+      ${field("Training settings (JSON, passed to the worker)", `<textarea id="s-train">${esc(JSON.stringify(s.train, null, 1))}</textarea>`, "epochs, lr, batch_size, max_length, device, human_holdout…")}
+    </fieldset>
+  </div><div class="panel-foot actions"><button class="primary" id="save-settings">Save defaults</button><span class="muted small">Threshold settings apply to new training attempts; existing students keep theirs.</span></div></section>`;
+}
+
+// ---- jobs ---------------------------------------------------------------------------------------
+const unfinished = (j) => j.status === "queued" || j.status === "running";
+const promptTitle = (id) => state.prompts.find((p) => p.id === id)?.title || id;
+function jobStatus(j) {
+  const [label, tone] = j.phase === "cancelled" ? ["Cancelled", ""] : {done: ["Completed", "ok"], failed: ["Failed", "bad"], running: ["Running", "info"], queued: ["Queued", ""]}[j.status] || [j.status, ""];
+  return `<span class="badge ${tone}">${esc(label)}</span>${j.attempt > 1 ? `<div class="muted small">attempt ${j.attempt} of ${Math.max(j.attempt, state.settings.max_attempts)}</div>` : ""}`;
+}
+function jobMessage(j) {
+  if (j.status === "queued" && j.not_before) return `<span class="muted">Retrying at ${esc(new Date(j.not_before).toLocaleString())}</span>`;
+  if (j.status === "queued") return '<span class="muted">Waiting for a worker</span>';
+  const msg = `<div class="message">${esc(j.message || "")}</div>`;
+  if (j.status !== "running" || j.done == null || !(j.total > 0)) return msg;
+  const f = Math.min(1, j.done / j.total);
+  return `${msg}<div class="bar" style="max-width:260px;margin-top:6px" role="progressbar" aria-label="Progress" aria-valuemin="0" aria-valuemax="${j.total}" aria-valuenow="${j.done}"><i style="width:${(f * 100).toFixed(1)}%"></i></div>
+    <div class="muted small">${fmt(j.done)} / ${fmt(j.total)} · ${Math.floor(f * 100)}%</div>`;
+}
+function jobAction(j, busy) {
+  if (unfinished(j)) return `<button class="danger" data-cancel="${esc(j.id)}">Cancel</button>`;
+  if (j.phase === "cancelled" && !busy.has(j.prompt_id)) return `<button data-retry="${esc(j.id)}">Retry</button>`;
+  return "";
+}
+function when(iso) { return iso ? `<span title="${esc(iso)}">${esc(new Date(iso).toLocaleString([], {month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"}))}</span>` : "—"; }
+function jobRows(jobs) {
+  if (!jobs.length) return `<tr><td colspan="6" class="empty">No training jobs yet.</td></tr>`;
+  const busy = new Set(jobs.filter(unfinished).map((j) => j.prompt_id));
+  return jobs.map((j) => `<tr><td>${esc(promptTitle(j.prompt_id))}<div class="muted small mono">${esc(j.id)}</div></td><td>${jobStatus(j)}</td>
+    <td>${jobMessage(j)}</td><td class="hide-sm">${when(j.created_at)}</td><td class="hide-sm">${when(j.finished_at)}</td><td class="num">${jobAction(j, busy)}</td></tr>`).join("");
+}
+
+function render() {
+  $("storeinfo").textContent = `Store: ${state.store}`;
+  $("main").innerHTML = `
+    <div class="page-head"><div><h1>Settings</h1><p>Models, defaults and per-prompt choices. Changes apply at once.</p></div></div>
+    <div class="layout">
+      <nav class="toc" aria-label="Sections"><a href="#prompts">Prompts</a><a href="#models">Models</a><a href="#defaults">Defaults</a><a href="#jobs">Training jobs</a></nav>
+      <div class="sections">
+        <div id="prompts"><div class="section-head"><h2>Prompts</h2><p>A prompt appears with its first request. Choose its models and target here, and start or stop its student.</p></div>
+          <div class="stack">${state.prompts.length ? state.prompts.map(promptPanel).join("") : '<section class="panel"><div class="empty">No prompts yet: they appear with their first request.</div></section>'}</div></div>
+        <div id="models"><div class="section-head"><h2>Models</h2><p><b>System One</b> answers requests today. The <b>judge</b> labels logged requests so a student can learn from them; its license must allow that.</p></div>
+          <div class="stack">${modelsSection()}</div></div>
+        <div id="defaults"><div class="section-head"><h2>Defaults</h2><p>Every prompt uses these unless it sets its own.</p></div>${defaultsSection()}</div>
+        <div id="jobs"><div class="section-head"><h2>Training jobs</h2><p>Run <code>system-none worker --gateway ${esc(location.origin)}</code> on a machine with a GPU to process them (<code>make</code> starts one). Cancel stops a job and its retries; Retry queues a cancelled job again.</p></div>
+          <section class="panel"><div class="table-wrap"><table><thead><tr><th>Prompt</th><th>Status</th><th>Message</th><th class="hide-sm">Created</th><th class="hide-sm">Finished</th><th></th></tr></thead><tbody id="jobs-body">${jobRows(state.jobs)}</tbody></table></div></section></div>
+      </div>
+    </div>`;
+  bind();
+  if (location.hash && !render.scrolled) { document.querySelector(location.hash)?.scrollIntoView(); render.scrolled = true; }
+}
+
+const val = (id) => $(id).value.trim();
+const numOrNull = (v) => v === "" ? null : Number(v);
+function overrides(pid) {
+  const box = document.querySelector(`.form-grid[data-pid="${pid}"]`);
+  const f = (k) => box.querySelector(`[data-f="${k}"]`).value.trim();
+  return {system_one_model: f("system_one_model") || null, judge: f("judge") || null, base_model: f("base_model") || null,
+          threshold: numOrNull(f("threshold")), target_accuracy: numOrNull(f("target_accuracy")),
+          per_language: box.querySelector('[data-f="per_language"]').checked || null};
+}
+
+function bind() {
+  $("s-calibration").onchange = () => { $("s-confidence").disabled = val("s-calibration") === "empirical"; };
+  $("save-settings").onclick = () => act(async () => {
+    let train;
+    try { train = JSON.parse(val("s-train") || "{}"); } catch (e) { throw new Error("Training settings must be valid JSON"); }
+    const r = await api("PUT", "/admin/api/settings", {
+      default_threshold: Number(val("s-threshold")), default_system_one: val("s-s1") || null, default_judge: val("s-judge") || null,
+      default_base_model: val("s-base"), default_target_accuracy: Number(val("s-target")), log_inputs: $("s-log").checked, train,
+      calibration: {method: val("s-calibration"), confidence_level: Number(val("s-confidence")) / 100},
+      max_attempts: Number(val("s-attempts")), retry_secs: Number(val("s-retry")), retry_max_secs: Number(val("s-retry-max")),
+      per_language: {min_confidence: Number(val("s-pl-confidence")), min_examples: Number(val("s-pl-examples")), base_model: val("s-pl-model")},
+      cache: {enabled: $("s-cache").checked, position: val("s-cache-position"), policy: val("s-cache-policy"),
+              capacity: Number(val("s-cache-capacity")), ttl_secs: Number(val("s-cache-ttl") || 0)},
+      monitor: {enabled: $("s-monitor").checked, sample_rate: Number(val("s-audit-rate")), uncertain_sample_rate: Number(val("s-audit-uncertain")), inconclusive_margin: Number(val("s-audit-margin")), window: Number(val("s-audit-window")), min_samples: Number(val("s-audit-min")), tolerance: Number(val("s-audit-tolerance"))}});
+    if (r.queued) toast(`Saved; ${r.queued} prompt(s) queued for training`);
+  }, "Defaults saved");
+  $("clear-cache").onclick = () => act(() => api("DELETE", "/admin/api/cache"), "Cache emptied");
+  $("save-s1").onclick = () => act(async () => {
+    if (!val("m-name")) throw new Error("Give the model a name");
+    await api("PUT", `/admin/api/system-one-models/${encodeURIComponent(val("m-name"))}`, {
+      kind: val("m-kind"), base_url: val("m-url"), model: val("m-model"), api_key_env: val("m-key") || null,
+      timeout_ms: Number(val("m-timeout") || 30000), logprobs: $("m-logprobs").checked, enabled: $("m-enabled").checked,
+      escalate_to: val("m-escalate") || null, escalate_below: val("m-escalate") ? Number(val("m-below") || 0.6) : null,
+      pricing: {usd_per_call: Number(val("m-usd-call") || 0), usd_per_million_input_tokens: Number(val("m-usd-in") || 0),
+                usd_per_million_output_tokens: Number(val("m-usd-out") || 0)}});
+  }, "System One model saved");
+  $("save-judge").onclick = () => act(async () => {
+    if (!val("j-name")) throw new Error("Give the judge a name");
+    await api("PUT", `/admin/api/judges/${encodeURIComponent(val("j-name"))}`, {
+      base_url: val("j-url"), model: val("j-model"), api_key_env: val("j-key") || null, mode: val("j-mode"),
+      samples: Number(val("j-samples") || 7), license_ack: $("j-ack").checked, enabled: $("j-enabled").checked});
+  }, "Judge saved");
+  document.querySelectorAll("[data-edit-s1]").forEach((b) => b.onclick = () => {
+    const m = state.system_one_models.find((x) => x.name === b.dataset.editS1);
+    $("s1-form").open = true;
+    $("m-name").value = m.name; $("m-kind").value = m.kind; $("m-url").value = m.base_url; $("m-model").value = m.model;
+    $("m-key").value = m.api_key_env || ""; $("m-timeout").value = m.timeout_ms; $("m-logprobs").checked = m.logprobs; $("m-enabled").checked = m.enabled;
+    $("m-escalate").value = m.escalate_to || ""; $("m-below").value = m.escalate_below ?? "";
+    const pr = m.pricing || JEV_PRICING;
+    $("m-usd-call").value = pr.usd_per_call; $("m-usd-in").value = pr.usd_per_million_input_tokens; $("m-usd-out").value = pr.usd_per_million_output_tokens;
+    $("m-name").focus();
+  });
+  document.querySelectorAll("[data-edit-j]").forEach((b) => b.onclick = () => {
+    const j = state.judges.find((x) => x.name === b.dataset.editJ);
+    $("j-form").open = true;
+    $("j-name").value = j.name; $("j-url").value = j.base_url; $("j-model").value = j.model; $("j-key").value = j.api_key_env || "";
+    $("j-mode").value = j.mode; $("j-samples").value = j.samples; $("j-ack").checked = j.license_ack; $("j-enabled").checked = j.enabled;
+    $("j-name").focus();
+  });
+  document.querySelectorAll("[data-del-s1]").forEach((b) => b.onclick = () => act(() => api("DELETE", `/admin/api/system-one-models/${encodeURIComponent(b.dataset.delS1)}`), "Deleted"));
+  document.querySelectorAll("[data-del-j]").forEach((b) => b.onclick = () => act(() => api("DELETE", `/admin/api/judges/${encodeURIComponent(b.dataset.delJ)}`), "Deleted"));
+  document.querySelectorAll("[data-save-p]").forEach((b) => b.onclick = () => act(async () => {
+    const r = await api("PUT", `/admin/api/prompts/${b.dataset.saveP}`, overrides(b.dataset.saveP));
+    if (r.queued) toast("Saved; the prompt is now queued for training");
+  }, "Prompt saved"));
+  document.querySelectorAll("[data-train]").forEach((b) => b.onclick = () => act(async () => {
+    const r = await api("PUT", `/admin/api/prompts/${b.dataset.train}`, overrides(b.dataset.train));
+    if (!r.queued) await api("POST", `/admin/api/prompts/${b.dataset.train}/train`);
+  }, "Training job queued"));
+  document.querySelectorAll("[data-undeploy]").forEach((b) => b.onclick = () => act(() => api("POST", `/admin/api/prompts/${b.dataset.undeploy}/undeploy`), "Student stopped; System One answers every request"));
+  document.querySelectorAll("[data-audit]").forEach((b) => b.onclick = () => act(() => api("POST", `/admin/api/prompts/${b.dataset.audit}/audit`), "Test restarted; System One answers until the student passes"));
+  bindJobs();
+}
+function bindJobs() {
+  document.querySelectorAll("[data-cancel]").forEach((b) => b.onclick = () => act(() => api("POST", `/admin/api/jobs/${b.dataset.cancel}/cancel`), "Job cancelled"));
+  document.querySelectorAll("[data-retry]").forEach((b) => b.onclick = () => act(() => api("POST", `/admin/api/jobs/${b.dataset.retry}/retry`), "Training job queued again"));
+}
+
+async function load() { state = await api("GET", "/admin/api/state"); render(); watch(); }
+
+// While anything moves (a job, a test), refresh the jobs table and the prompts' badges every few
+// seconds. The forms are left alone, so nothing typed is lost.
+let timer = null;
+function watch() {
+  clearTimeout(timer);
+  const moving = state.jobs.some(unfinished) || state.prompts.some((p) => p.status === "shadow");
+  if (moving) timer = setTimeout(refreshLive, 3000);
+}
+async function refreshLive() {
+  let fresh;
+  try { fresh = await api("GET", "/admin/api/state"); } catch (e) { if (e.message !== "unauthorized") watch(); return; }
+  if (!$("jobs-body")) return;
+  state.jobs = fresh.jobs;
+  $("jobs-body").innerHTML = jobRows(state.jobs);
+  bindJobs();
+  fresh.prompts.forEach((p) => { const el = document.querySelector(`[data-status="${p.id}"]`); if (el) el.outerHTML = statusBadge(p.status, p.id); });
+  state.prompts = state.prompts.map((p) => ({...p, status: fresh.prompts.find((q) => q.id === p.id)?.status ?? p.status}));
+  watch();
+}
+
+if (token) load().catch(() => {}); else bindGate();
+</script>
+</body>
+</html>

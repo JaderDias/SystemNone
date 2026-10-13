@@ -1,0 +1,43 @@
+project: support-intent
+workdir: runs/support-intent
+
+task:
+  name: intent
+  question: "What does the customer want?"
+  labels:
+    refund: "Wants money back for a charge or an order"
+    cancel: "Wants to cancel an order or a subscription"
+    shipping: "Asks where an order is, or about delivery"
+    login: "Cannot sign in or access the account"
+    other: "Anything else"
+
+# The judge labels logged inputs offline. Pick the strongest model whose license lets you
+# train on its outputs (e.g. open weights served with vLLM), and confirm it below.
+judge:
+  base_url: http://localhost:8000/v1
+  model: Qwen/Qwen3-32B
+  api_key_env: JUDGE_API_KEY
+  mode: logprobs          # or "sample" if the server has no logprobs
+  concurrency: 8
+  extra_body: {chat_template_kwargs: {enable_thinking: false}}
+  license:
+    allows_training_on_outputs: false   # set to true once you've checked the license
+    note: ""
+
+# Today's model (an LLM or a System One model). Serve-only: used as the cascade fallback,
+# never as a source of training data.
+incumbent:
+  base_url: https://api.example.com/v1
+  model: your-current-model
+  api_key_env: INCUMBENT_API_KEY
+  mode: logprobs
+
+shadow: {sample_rate: 1.0}
+
+students:
+  english: [microsoft/deberta-v3-base, answerdotai/ModernBERT-base]
+  multilingual: []        # e.g. [microsoft/mdeberta-v3-base, jhu-clsp/mmBERT-base, FacebookAI/xlm-roberta-base]
+
+train: {epochs: 3, lr: 3.0e-5, batch_size: 16, max_length: 256}
+cascade: {target_accuracy: 0.95}
+monitor: {sample_rate: 0.01, window: 500, min_samples: 100, tolerance: 0.03}

@@ -1,0 +1,61 @@
+[package]
+name = "system-none-gateway"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+license = "Apache-2.0"
+description = "Realtime classification gateway: System One API, input logging, cascade to distilled students, usage and admin UIs."
+
+[[bin]]
+name = "system-none-gateway"
+path = "src/main.rs"
+
+[lib]
+name = "system_none_gateway"
+path = "src/lib.rs"
+
+[dependencies]
+anyhow = "1"
+axum = "0.8"
+bytes = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+clap = { version = "4", features = ["derive", "env"] }
+futures = "0.3"
+hex = "0.4"
+object_store = { version = "0.14", features = ["aws", "fs"] }
+ort = { version = "=2.0.0-rc.13", default-features = false, features = ["load-dynamic", "std"] }
+rand = "0.9"
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+# fallible_uint: counts are u64 in Rust and INTEGER (i64) in SQLite, converted with a check.
+rusqlite = { version = "0.40", features = ["bundled", "fallible_uint"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha1 = "0.10"
+sha2 = "0.10"
+tokenizers = { version = "0.23", default-features = false, features = ["fancy-regex"] }
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+url = "2"
+uuid = { version = "1", features = ["v4"] }
+whatlang = "0.18.0"
+
+[dev-dependencies]
+tempfile = "3"
+
+# Clippy's pedantic lints as well as its defaults, which CI and make lint deny (-D warnings). The
+# lints below don't fit this code anywhere; one that doesn't fit a single function is expected
+# there instead (#[expect(..., reason = ...)]), so clippy says when it is no longer needed.
+# gateway/clippy.toml has the names doc comments may use without backticks.
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+# The library is the gateway's own, used only by main.rs and the tests: an `# Errors` section on
+# every function that returns anyhow::Result, or #[must_use] on every getter, would add nothing.
+missing_errors_doc = "allow"
+must_use_candidate = "allow"
+# The code's style: s for the state, p for a prompt, e for an error, m for a model.
+many_single_char_names = "allow"
+
+[profile.release]
+lto = "thin"
+codegen-units = 4

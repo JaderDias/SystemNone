@@ -1,0 +1,89 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "system-none"
+version = "0.1.0"
+description = "Distill high-volume LLM / System One classification into a fast, calibrated encoder you own."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Apache-2.0" }
+dependencies = [
+  "numpy>=1.24",
+  "pyyaml>=6",
+  "httpx>=0.25",
+  "langid>=1.1.6",
+  "tokenizers>=0.15",
+  "onnxruntime>=1.17",
+]
+
+[project.optional-dependencies]
+# Everything needed to train and export (the runtime above only needs ONNX Runtime).
+train = ["torch>=2.2", "transformers>=4.48", "sentencepiece", "protobuf", "onnx>=1.15", "onnxscript",
+         "sentence-transformers>=5", "scipy>=1.10"]
+serve = ["fastapi>=0.110", "uvicorn>=0.27"]
+bench = ["datasets>=2.18"]
+s3 = ["boto3>=1.34"]
+# The linters `make lint` and CI run, pinned so that both run the same versions (the Security
+# workflow names the same bandit version).
+lint = ["ruff==0.16.9", "ty==0.0.84", "bandit[toml]==1.9.4"]
+dev = ["pytest>=8", "system-none[train,serve,lint]"]
+
+[project.scripts]
+system-none = "system_none.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+# The code's own style: lines run to about 110-120 characters.
+line-length = 120
+# Python files only: the code blocks in the Markdown files are examples, laid out for reading.
+extend-exclude = ["*.md"]
+
+[tool.ruff.lint]
+# The defaults (pycodestyle errors E4, E7, E9 and pyflakes F), plus isort (I), pyupgrade (UP),
+# bugbear (B), comprehensions (C4), simplify (SIM), flake8-pie (PIE), Ruff's own rules (RUF),
+# debugger leftovers (T10), and noqa and type-ignore comments that don't name a rule (PGH).
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "C4", "SIM", "PIE", "RUF", "T10", "PGH"]
+# SIM905: a list of words reads better as "a b c".split() than as one quoted word per line.
+ignore = ["SIM905"]
+
+[tool.ruff.lint.flake8-comprehensions]
+# dict(hidden_size=64, ...) reads as keyword arguments, which it is.
+allow-dict-calls-with-keyword-arguments = true
+
+[tool.ruff.lint.isort]
+# As the tests already have them: the helper modules in tests/ in a section of their own, after
+# system_none, and `from x import a, b as c` on one line.
+known-local-folder = ["conftest", "hardcoded_judge"]
+combine-as-imports = true
+
+[tool.ty.src]
+include = ["src", "tests"]
+
+[tool.ty.analysis]
+# The bench and s3 extras, which dev doesn't install: only the functions that need them import them.
+allowed-unresolved-imports = ["datasets", "boto3"]
+
+[tool.ty.rules]
+# The few `ty: ignore` comments are for torch, transformers and sentence-transformers typing; say
+# when one is no longer needed.
+unused-ignore-comment = "warn"
+
+[tool.bandit]
+# B615 (Hub downloads without a pinned revision): the base models are the user's choice, and so is their revision.
+skips = ["B615"]
+
+[tool.bandit.assert_used]
+# B101 (assert): only in tests/, where asserts are the point. (bandit runs as `bandit -r src tests`.)
+skips = ["tests/*", "*/tests/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning", "ignore::UserWarning", "ignore::FutureWarning"]
+markers = [
+  "slow: trains on the 3,928-row ai4privacy slice (medium: about 2 minutes on CPU; big: pretrained DeBERTa)",
+  "gateway: builds the Rust gateway and runs it with the Python worker",
+]
