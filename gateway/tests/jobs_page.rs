@@ -374,7 +374,7 @@ async fn training_progress_needs_no_admin_token_and_shows_only_progress_and_prom
         .json()
         .await
         .unwrap();
-    assert!(absent.is_empty());
+    assert_eq!(absent, Vec::<Value>::new());
     // /jobs is the usage page's training view, served as itself rather than redirected.
     let redirects = reqwest::Client::builder()
         .redirect(reqwest::redirect::Policy::none())

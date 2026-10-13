@@ -1035,10 +1035,6 @@ mod tests {
     }
 
     #[test]
-    #[expect(
-        clippy::float_cmp,
-        reason = "rates are selected configuration constants"
-    )]
     fn judge_audit_share_adapts_to_prior_evidence_and_never_drops_below_base() {
         let cfg = MonitorSettings {
             min_samples: 100,
@@ -1103,10 +1099,6 @@ mod tests {
     }
 
     #[test]
-    #[expect(
-        clippy::float_cmp,
-        reason = "checking exact deserialized default constants"
-    )]
     fn existing_settings_and_monitor_state_load_with_new_defaults() {
         let cfg: MonitorSettings =
             serde_json::from_value(serde_json::json!({"sample_rate": 0.02})).unwrap();

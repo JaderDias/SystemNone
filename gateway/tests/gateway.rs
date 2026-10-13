@@ -227,11 +227,9 @@ async fn the_judge_audits_students_and_a_failed_shadow_test_stops_without_retrai
         .db
         .path_latencies(&pid, &system_none_gateway::db::today())
         .unwrap();
-    assert!(!routes.is_empty());
-    assert!(
-        routes
-            .iter()
-            .all(|row| row["path"] == json!(["system_one:reference"])),
+    assert_eq!(
+        routes.iter().map(|row| &row["path"]).collect::<Vec<_>>(),
+        [&json!(["system_one:reference"])],
         "shadow predictions are outside the response path"
     );
 
