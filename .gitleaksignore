@@ -1,5 +1,5 @@
 # Findings of gitleaks that aren't secrets, one fingerprint (commit:file:rule:line) each.
 
-# The deleted Docker workflow's check sent the CI-only placeholder tokens (ci-admin, ci-worker)
-# that the same step wrote to its .env.
-6b0b2298d4f89914ed064ee51ade1a0f9dc35cce:.github/workflows/docker.yml:curl-auth-header:55
+# The Images workflow's check sends the CI-only placeholder tokens (ci-admin, ci-worker) that its
+# Docker Compose step wrote to .env.
+a5b6fe58a01caff945d891c1f50cacd40831254f:.github/workflows/images.yml:curl-auth-header:44
