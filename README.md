@@ -40,11 +40,6 @@ all 3,080 test messages: see [Benchmarking on banking77](#benchmarking-on-bankin
 
 [![The SystemNone keynote's opening still: "SystemNone. Zero-click fine-tuning, performance and cost optimization. Behind the API you already call." Opens the video.](video/out/poster.jpg)](https://jaderdias.github.io/SystemNone/video/player.html)
 
-The [explainer video](video/STORYBOARD.md) plays in an HTML player, with instructions to
-preview it; MP4 export is optional. It follows an English student model through to why it is
-fast, then turns to other languages: why a multilingual student is bigger and slower to train,
-a small student for each language behind a language router, and at last the cache.
-
 It comes in two parts:
 
 - **`gateway/`: a realtime gateway in Rust.** It serves a System One-style classification API,
@@ -62,19 +57,6 @@ runtime.
 
 ![A frame from the SystemNone keynote video. Your app sends POST /v1/systemone to the SystemNone gateway, which logs the inputs to a store. At 10,000 inputs, a Python worker judges, fine-tunes, calibrates and exports a student model to ONNX, and the gateway loads it: your app changes nothing. The student model now answers 89% of requests.](video/how-it-works.png)
 
-The same flow in more detail:
-
-```
-clients ──► POST /v1/classify ──► gateway (Rust) ──► confident student? ──yes──► answer
-                                     │                      │ no
-                                     │                      └──► System One model / LLM ──► answer
-                                     └── inputs only ──► store (folder or S3)
-                                                             │  prompt reaches its request threshold
-                                                             ▼
-                        system-none worker (Python): judge ─► fine-tune ─► calibrate ─► ONNX ─► store
-                                                                                               │
-                                                        gateway loads the new student ◄────────┘
-```
 
 ## Running everything with `make`
 
@@ -217,129 +199,6 @@ repository restricts using its outputs, so `make` acknowledges its license for t
 [Licensing of training data](#licensing-of-training-data)). For another `DECIDER_MODEL`, `make`
 configures no judge until you have checked that model's license and run
 `make JUDGE=decider DECIDER_LICENSE_ACK=yes`.
-
-### With Fastino's GLiDE
-
-[Fastino's GLiDE](https://docs.fastino.ai/inference/systemone) serves the same
-`POST /v1/systemone`, so it is a `systemone` System One model too; `make` doesn't set it up yet.
-Put its key in `.env` (or the gateway's environment) as `FASTINO_API_KEY`, and add the model in
-`/admin`, or with the admin API:
-
-```bash
-curl -X PUT http://localhost:8080/admin/api/system-one-models/glide \
-  -H "Authorization: Bearer $SN_ADMIN_TOKEN" -H "Content-Type: application/json" \
-  -d '{"kind": "systemone", "base_url": "https://api.fastino.ai", "model": "fastino/glide",
-       "api_key_env": "FASTINO_API_KEY"}'
-```
-
-The key goes as a bearer token, which Fastino accepts as well as its own `X-API-Key` header.
-GLiDE's `confidence` is the margin between its two most likely labels; the gateway's confidence
-is the probability of the answer, as with Decider, so `escalate_below` means the same for both.
-A cold model answers `425` for about a minute while it warms up, which the gateway reports like
-any other failure.
-
-GLiDE can't be the judge: Fastino's Terms of Service (§4.A) prohibit using its inference
-responses to train, fine-tune or distill models that compete with Fastino, as students trained to
-answer in its place would. They also let Fastino train its own models on the inputs you send
-(§6), unless your plan lets you opt out.
-
-## Running the gateway
-
-The gateway and the worker run as two containers. CI builds their images with Nix and publishes
-them to GitHub's container registry, so Docker Compose only pulls:
-
-```bash
-printf 'SN_ADMIN_TOKEN=%s\nSN_WORKER_TOKEN=%s\n' "$(openssl rand -hex 16)" "$(openssl rand -hex 16)" > .env
-docker compose up -d
-```
-
-`docker-compose.yaml` pulls the latest build of `main`; `SN_IMAGE_TAG=sha-<commit>` in `.env`
-pins the build of one commit. While the repository is private, so are its packages: log in with
-`docker login ghcr.io` and a token that can read packages.
-
-The images are reproducible: `flake.lock` pins every input, and building a commit again gives the
-same bytes, which CI checks before publishing. With Nix (on Linux, with flakes enabled),
-`nix run .#compose` builds them locally instead, loads them under the names Compose uses and
-writes `.env` with new tokens if there is none; `docker compose up -d` then starts them.
-
-`.env` holds the admin and worker tokens. Both containers read it, so it is also where API keys
-for System One models and judges go, `HF_TOKEN` for gated checkpoints,
-and `SN_STORE=s3://bucket/prefix` with the usual `AWS_*` variables for an S3 store. Otherwise
-the store is a folder in the shared `system-none_data` volume, next to the gateway's SQLite
-database, the downloaded students and the Hugging Face checkpoints. The worker trains on CPU.
-System One models and judges name the variable that holds their API key; names starting with
-`SN_` or `AWS_` are refused, because those hold the gateway's own tokens and store credentials.
-
-Both containers run as `nobody` (uid 65534) with no Linux capabilities and `no-new-privileges`;
-only `/data` and `/tmp` are writable. A volume created by an older, root-run image needs its
-owner changed once: `docker run --rm -v system-none_data:/data alpine chown -R 65534:65534 /data`.
-
-Without containers, `nix run .#gateway -- --listen 0.0.0.0:8080` and
-`nix run .#system-none -- worker` run the same builds, with the tokens in the environment.
-
-Then open `http://localhost:8080/admin`, sign in with the `SN_ADMIN_TOKEN` from `.env`, and set up:
-
-- **System One models:** the models that answer while there is no confident student.
-  - `openai_chat` works with any OpenAI-compatible endpoint (vLLM, Ollama, OpenRouter, a hosted LLM).
-    It asks for the option's letter, or for the label's name when a prompt has more than 26 labels.
-  - `decision_http` POSTs `{model, instructions, labels, input}` and expects `{label, confidence}`.
-    Put a small adapter in front of a proprietary System One API.
-  - `systemone` speaks TypeSafe's `POST /v1/systemone`, which a
-    [Decider](https://huggingface.co/Mapika/decider-2b) server and Fastino's GLiDE serve (see
-    [With Fastino's GLiDE](#with-fastinos-glide)): its endpoint URL is the server's root. The
-    prompt is one Choice question whose options are the labels, with their descriptions, and the
-    confidence is the probability of the answer.
-
-  Each model has a price, for the cost estimate on the usage page (see
-  [Cost estimate](#cost-estimate)): `pricing: {usd_per_call, usd_per_million_input_tokens,
-  usd_per_million_output_tokens}`, TypeSafe Jev's list price unless set.
-- **Judges:** the models that label logged inputs for training. Each one needs a license
-  acknowledgement, and the denylist refuses services that forbid distillation. A judge is an
-  OpenAI-compatible endpoint (mode `logprobs` or `sample`), or a `POST /v1/systemone` server
-  such as Decider (mode `systemone`), whose answer probabilities become the soft labels.
-- **Defaults:** how many requests a prompt must receive before its student is trained, the base
-  model, the judge, the target accuracy, advanced training settings, how failed trainings
-  are retried, and the [cache](#cache) of System One's answers.
-- **Per-prompt overrides:** a different System One model, judge, base model, threshold or target,
-  [a student per language](#students-per-language),
-  for one prompt, plus "Fine-tune selected model" and "Stop using student". Ettin
-  (`jhu-clsp/ettin-encoder-17m`) is the default encoder; older `auto` settings also choose Ettin.
-  Select a larger encoder and press the fine-tune button to save the prompt's choices and queue training.
-  Judgments are preserved in the shared store under `judgments/{judge_context_hash}/`
-  as each label arrives, including when judging or training fails. A new job reuses them and judges only new inputs;
-  changing the prompt or the judge's endpoint, model, mode or sample count starts a separate cache,
-  and so does a new [judge version](#judge-versions).
-- **Training jobs:** each job's status and the worker's last message. While the worker judges or
-  trains, a progress bar shows how far that stage has got (inputs judged, training steps, or
-  texts embedded for a frozen embedding model). The table refreshes itself every few seconds
-  while a job is queued or running. When the worker reports that a job failed, the gateway
-  queues a retry for 1 minute later, then 2, 4 and 8 (the wait doubles, up to an hour), for 5
-  attempts in all by default; only then does the prompt show "failed". The retry waits in
-  SQLite, so it survives a restart, and "Train now" runs it at once. Cancel stops a queued or
-  running job and ends its retries: a cancelled job, and a student the gateway can't load, are not
-  retried automatically. Retry, on a job an admin cancelled, queues its prompt again as "Train
-  now" would, at once and from attempt 1, unless the prompt has another job queued or running.
-
-`http://localhost:8080/` shows the most used prompts: total and daily requests, the share
-answered by students, and progress towards training. Expand a prompt to see the request count,
-nearest-rank p50 and maximum whole-request latency for each ordered model route over the last
-seven days. Routes distinguish Ettin, other students, System One models, and cascades or
-escalations between them. These latency histograms persist in SQLite across gateway restarts;
-requests made before this feature was installed have no route samples. They are counted in
-memory and written every second, with the usage counters, rather than once per request.
-
-A request's latency is the whole request in the gateway, not the student's model speed (which
-the worker measures after training, one text at a time, and the student's details show). Each
-student answers one request at a time, so with more requests at once than it can take, they
-queue, and their latency grows with the load: on a 16-core machine, an Ettin 17M student that
-takes 1.3 ms a text reached 17 ms at the median with 8 requests in flight, at about 400 a second.
-
-Each prompt's details on the usage page say in one sentence where its student stands and
-what happens next, then show its pipeline (collect, train, test, serve), its audit, the
-student's numbers, who answered its traffic and how fast, and a collapsible training history
-with stage progress and attempt times, without exposing worker messages or private training
-settings. `/jobs` shows every prompt's training attempts in one list. Usage requires
-`SN_VIEWER_TOKEN` when configured and also accepts the admin token.
 
 ### Cost estimate
 
