@@ -38,6 +38,8 @@ all 3,080 test messages: see [Benchmarking on banking77](#benchmarking-on-bankin
 
 ## How it works
 
+[![The SystemNone keynote's opening still: "SystemNone. Zero-click fine-tuning, performance and cost optimization. Behind the API you already call." Opens the video.](video/out/poster.jpg)](https://jaderdias.github.io/SystemNone/video/player.html)
+
 The [explainer video](video/STORYBOARD.md) plays in an HTML player, with instructions to
 preview it; MP4 export is optional. It follows an English student model through to why it is
 fast, then turns to other languages: why a multilingual student is bigger and slower to train,
