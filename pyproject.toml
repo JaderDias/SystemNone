@@ -27,7 +27,7 @@ bench = ["datasets>=2.18"]
 s3 = ["boto3>=1.34"]
 # The linters `make lint` and CI run, pinned so that both run the same versions (the Security
 # workflow names the same bandit version).
-lint = ["ruff==0.16.9", "ty==0.0.84", "bandit[toml]==1.9.4"]
+lint = ["ruff==0.17.2", "ty==0.0.91", "bandit[toml]==1.9.4"]
 dev = ["pytest>=8", "system-none[train,serve,lint]"]
 
 [project.scripts]
